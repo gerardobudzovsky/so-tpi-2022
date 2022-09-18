@@ -1,7 +1,7 @@
-package consigna11;
+package tpi;
 
 public class Particion {
-    private Integer id;
+    private String id;
     private Integer tamanho;
     private Proceso proceso;
     private Integer direccionInicio;
@@ -27,7 +27,7 @@ public class Particion {
         super();
     }
 
-    public Particion(Integer id, Integer tamanho, Proceso proceso, Integer direccionInicio, Integer direccionFinal) {
+    public Particion(String id, Integer tamanho, Proceso proceso, Integer direccionInicio, Integer direccionFinal) {
         this.id = id;
         this.tamanho = tamanho;
         this.proceso = proceso;
@@ -35,11 +35,11 @@ public class Particion {
         this.direccionFinal = direccionFinal;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -59,12 +59,11 @@ public class Particion {
         this.proceso = proceso;
     }
 
-    @Override
-    public String toString() {
-        return "consigna11.Particion{" +
-                "id=" + id +
-                ", tamanho=" + tamanho +
-                ", proceso=" + proceso +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "Particion [id=" + id + ", tamanho=" + tamanho + ", proceso=" + proceso + ", direccionInicio="
+				+ direccionInicio + ", direccionFinal=" + direccionFinal + "]" + "\n";
+	}
+
+
 }

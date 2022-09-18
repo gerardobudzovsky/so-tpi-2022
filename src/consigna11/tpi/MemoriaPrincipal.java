@@ -1,16 +1,16 @@
-package consigna11;
+package tpi;
 
 import java.util.List;
 
-public class Memoria {
+public class MemoriaPrincipal {
     private List<Particion> particiones;
     private Integer tamanho;
 
-    public Memoria() {
+    public MemoriaPrincipal() {
         super();
     }
 
-    public Memoria(List<Particion> particiones, Integer tamanho) {
+    public MemoriaPrincipal(List<Particion> particiones, Integer tamanho) {
         super();
         this.particiones = particiones;
         this.tamanho = tamanho;
@@ -34,7 +34,7 @@ public class Memoria {
 
     @Override
     public String toString() {
-        return "consigna11.Memoria{" +
+        return "Memoria{" +
                 "particiones=" + particiones +
                 '}';
     }

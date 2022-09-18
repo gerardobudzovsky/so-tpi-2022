@@ -1,4 +1,4 @@
-package consigna11;
+package tpi;
 
 public class Proceso {
 
@@ -52,10 +52,15 @@ public class Proceso {
         this.id = id;
     }
 
+//	@Override
+//	public String toString() {
+//		return "Proceso [id=" + id + ", tamanho=" + tamanho + ", tiempoDeArribo=" + tiempoDeArribo
+//				+ ", tiempoDeIrrupcion=" + tiempoDeIrrupcion + ", estado=" + estado + "]"+"\n";
+//	}
+	
 	@Override
 	public String toString() {
-		return "Proceso [id=" + id + ", tamanho=" + tamanho + ", tiempoDeArribo=" + tiempoDeArribo
-				+ ", tiempoDeIrrupcion=" + tiempoDeIrrupcion + ", estado=" + estado + "]"+"\n";
+		return this.id;
 	}
     
 
