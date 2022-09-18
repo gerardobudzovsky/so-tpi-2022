@@ -22,15 +22,15 @@ public class TestSimulador {
         particiones.add(particion3);
         memoria.setParticiones(particiones);
 
-        Proceso so = new Proceso("SO", 150);
-        Proceso p1 = new Proceso("P1", 100);
-        Proceso p2 = new Proceso("P2", 150);
-        Proceso p3 = new Proceso("P3", 250);
+//        Proceso so = new Proceso("SO", 150);
+//        Proceso p1 = new Proceso("P1", 100);
+//        Proceso p2 = new Proceso("P2", 150);
+//        Proceso p3 = new Proceso("P3", 250);
 
-        particionSo.setProceso(so);
-        particion1.setProceso(p1);
-        particion2.setProceso(p2);
-        particion3.setProceso(p3);
+//        particionSo.setProceso(so);
+//        particion1.setProceso(p1);
+//        particion2.setProceso(p2);
+//        particion3.setProceso(p3);
 
         System.out.println("Tamanho memoria: " +  memoria.getTamanho() + " kB");
 

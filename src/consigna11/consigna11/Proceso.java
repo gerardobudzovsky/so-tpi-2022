@@ -4,14 +4,43 @@ public class Proceso {
 
     private String id;
     private Integer tamanho;
+    private Integer tiempoDeArribo;
+    private Integer tiempoDeIrrupcion;
+    private String estado;
 
-    public Proceso(String id, Integer tamanho) {
-        super();
-        this.id = id;
-        this.tamanho = tamanho;
-    }
+    public Integer getTamanho() {
+		return tamanho;
+	}
 
-    public Proceso() {
+	public void setTamanho(Integer tamanho) {
+		this.tamanho = tamanho;
+	}
+
+	public Integer getTiempoDeArribo() {
+		return tiempoDeArribo;
+	}
+
+	public void setTiempoDeArribo(Integer tiempoDeArribo) {
+		this.tiempoDeArribo = tiempoDeArribo;
+	}
+
+	public Integer getTiempoDeIrrupcion() {
+		return tiempoDeIrrupcion;
+	}
+
+	public void setTiempoDeIrrupcion(Integer tiempoDeIrrupcion) {
+		this.tiempoDeIrrupcion = tiempoDeIrrupcion;
+	}
+
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
+	public Proceso() {
         super();
     }
 
@@ -22,5 +51,12 @@ public class Proceso {
     public void setId(String id) {
         this.id = id;
     }
+
+	@Override
+	public String toString() {
+		return "Proceso [id=" + id + ", tamanho=" + tamanho + ", tiempoDeArribo=" + tiempoDeArribo
+				+ ", tiempoDeIrrupcion=" + tiempoDeIrrupcion + ", estado=" + estado + "]"+"\n";
+	}
+    
 
 }
