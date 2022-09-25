@@ -4,12 +4,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import tpi.constantes.Constantes;
+import tpi.entidades.Cpu;
+import tpi.entidades.MemoriaPrincipal;
+import tpi.entidades.Particion;
+import tpi.entidades.Proceso;
+
 public class Planificador {
 
 	private Cpu cpu;
 	private MemoriaPrincipal memoriaPrincipal;
 	private List<Proceso> colaDeListos;
-	private List<Proceso> colaDeNuevos;
+	private List<Proceso> colaDeNuevos; // cola de nuevos está en memoria secundaria
+	private List<Proceso> colaDeListosSuspendidos;
 	private Integer tiempo;
 
 	public Planificador() {
@@ -17,6 +24,7 @@ public class Planificador {
 		this.tiempo = 0;
 		this.colaDeListos = new ArrayList<Proceso>();
 		this.colaDeNuevos = new ArrayList<Proceso>();
+		this.colaDeListosSuspendidos = new ArrayList<Proceso>();
 		this.memoriaPrincipal = new MemoriaPrincipal();
 		this.memoriaPrincipal.setTamanho(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS + Constantes.TAMANHO_PARTICION_T_PEQUENHOS);
 		List<Particion> particiones = this.inicializarParticiones();		
@@ -25,7 +33,7 @@ public class Planificador {
 	
 	public void ejecutar(List<Proceso> procesosEnCsv) {
 		
-		Integer contadorProcesosCpu = 0;
+		Integer cantidadDeProcesosFinalizados = 0;
 		String gantt = "";
 		
 		System.out.println("Memoria Principal");
@@ -33,17 +41,42 @@ public class Planificador {
 		
 		do {
 			
+			//SJF
 			for (Proceso proceso : procesosEnCsv) {
 				if (proceso.getTiempoDeArribo().equals(this.tiempo))
 					this.colaDeNuevos.add(proceso);
 			}
-			this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));			
-	        
+			this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 			
-	        if (cpu.getProceso() == null) {
+//	        //Worst-Fit
+//			for (Proceso proceso : colaDeNuevos) {
+//				
+//				Integer espacioRemanenteMaximo = 0;
+//				for (Particion particion : this.memoriaPrincipal.getParticiones()) {
+//					
+//					Integer espacioRemanente = particion.getTamanho() - proceso.getTamanho();
+//					
+//					if (! particion.getId().equals("SO") & espacioRemanente > espacioRemanenteMaximo ) {
+//						espacioRemanenteMaximo = espacioRemanente;
+//						particion.setProceso(proceso);
+//					}
+//				}				
+//			}
+//			
+//			for (Particion particion : memoriaPrincipal.getParticiones()) {
+//				if (particion.getId() != "SO") {
+//					System.out.println("Particion " + particion.getId() );
+//					System.out.println("Proceso " + particion.getProceso());
+//				}
+//
+//			}
+					
+			                                                                                                                                                                                            
+			if (cpu.getProceso() == null) {
 	        	cpu.setProceso(colaDeNuevos.get(0));
 	        	colaDeNuevos.remove(0);
 	        }
+	        
 	        this.cpu.getProceso().setTiempoDeIrrupcion(this.cpu.getProceso().getTiempoDeIrrupcion() - 1);
 
 	        
@@ -55,14 +88,14 @@ public class Planificador {
 	        System.out.println();
 		
         	if (this.cpu.getProceso().getTiempoDeIrrupcion() == 0) {
-        		contadorProcesosCpu++;
+        		cantidadDeProcesosFinalizados++;
         		this.cpu.setProceso(null);
         	}
         	        
 	        this.tiempo++;
 	       
 			
-		} while (contadorProcesosCpu < procesosEnCsv.size());
+		} while (cantidadDeProcesosFinalizados < procesosEnCsv.size());
 		
 	}
 	

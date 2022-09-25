@@ -1,4 +1,4 @@
-package tpi;
+package tpi.entidades;
 
 public class Particion {
     private String id;

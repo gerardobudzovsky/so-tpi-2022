@@ -1,4 +1,4 @@
-package tpi;
+package tpi.entidades;
 
 public class Proceso {
 

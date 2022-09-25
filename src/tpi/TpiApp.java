@@ -4,9 +4,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class TestSimulador {
+import tpi.entidades.Proceso;
+import tpi.utils.Utils;
 
-    public static void main (String args[]){
+public class TpiApp {
+
+	public static void main(String args[]) {
+
+		List<Proceso> procesos = Utils.leerProcesos();
+		Planificador planificador = new Planificador();
+		planificador.ejecutar(procesos);
+		
 
 //        MemoriaPrincipal memoria = new MemoriaPrincipal();
 //        memoria.setTamanho(650);
@@ -42,20 +50,16 @@ public class TestSimulador {
 //            System.out.printf("%15s %15s %15s %15s", particion.getProceso().getId(), particion.getId(),  particion.getDireccionInicio(), particion.getTamanho());
 //            System.out.println();
 //        }
-    	
-    	//Scanner sc = new Scanner(System.in);
-        //System.out.println("Ingrese el nombre del archivo CSV: ");
-        //String nombreCSV = sc.nextLine();
+
+		// Scanner sc = new Scanner(System.in);
+		// System.out.println("Ingrese el nombre del archivo CSV: ");
+		// String nombreCSV = sc.nextLine();
 
 //         System.out.println("Procesos desordenados: ");
 //         System.out.println(procesos);
 //         procesos.sort(Comparator.comparing(Proceso::getTiempoDeArribo));
 //         System.out.println("Procesos ordenados por Tiempo De Arribo: ");
 //         System.out.println(procesos);
-         
-     	List<Proceso> procesos = Utils.leerProcesos();
-         Planificador planificador = new Planificador();
-         planificador.ejecutar(procesos);
 
-    }
+	}
 }
