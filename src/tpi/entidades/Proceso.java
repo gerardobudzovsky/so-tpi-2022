@@ -1,12 +1,14 @@
 package tpi.entidades;
 
+import tpi.constantes.Estado;
+
 public class Proceso {
 
     private String id;
     private Integer tamanho;
     private Integer tiempoDeArribo;
     private Integer tiempoDeIrrupcion;
-    private String estado;
+    private Estado estado;
 
     public Integer getTamanho() {
 		return tamanho;
@@ -32,11 +34,11 @@ public class Proceso {
 		this.tiempoDeIrrupcion = tiempoDeIrrupcion;
 	}
 
-	public String getEstado() {
+	public Estado getEstado() {
 		return estado;
 	}
 
-	public void setEstado(String estado) {
+	public void setEstado(Estado estado) {
 		this.estado = estado;
 	}
 
