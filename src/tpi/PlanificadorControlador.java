@@ -19,8 +19,7 @@ public class PlanificadorControlador {
 	private List<Proceso> procesosEnArchivoCsv;
 	private Integer tiempo;
 	private List<Proceso> colaDeNuevos;
-	private List<Proceso> colaDeListos;
-	private List<Proceso> colaDeListosSuspendidos;
+	private List<Proceso> colaDeAdmitidos;
 
 	public PlanificadorControlador() {
 		this.planificadorServicio = new PlanificadorServicio();
@@ -32,46 +31,73 @@ public class PlanificadorControlador {
 		this.procesosEnArchivoCsv = new ArrayList<Proceso>();
 		this.tiempo = 0;
 		this.colaDeNuevos = new ArrayList<Proceso>();
-		this.colaDeListos = new ArrayList<Proceso>();
-		this.colaDeListosSuspendidos = new ArrayList<Proceso>();
+		this.colaDeAdmitidos = new ArrayList<Proceso>();
 	}
 	
 	public void ejecutar() {
 		
 		Integer cantidadDeProcesosFinalizados = 0;
 		String gantt = "";
+		//En el metodo leerProcesos() leemos los procesos del csv, controlamos su formato y 
+		//y si no hay errores los cargamos en la lista procesosEnArchivoCsv
 		this.procesosEnArchivoCsv = this.planificadorServicio.leerProcesos();
 		
-		System.out.println("Memoria Principal");
-		System.out.println(memoriaPrincipal);
+//		System.out.println("Memoria Principal");
+//		System.out.println(memoriaPrincipal);
 		
 		do {
 			
-			this.colaDeNuevos = this.planificadorServicio.sjf(this.colaDeNuevos, this.procesosEnArchivoCsv, this.tiempo);
+			//En este ciclo for recorro los procesos en el csv. Todo proceso del csv con tiempo de arribo igual al tiempo actual
+			//es agregado a la lista procesosLlegadosEnElInstanteActual
+			ArrayList<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
+			for (Proceso proceso : procesosEnArchivoCsv) {
+				if (proceso.getTiempoDeArribo().equals(tiempo)) {
+					proceso.setEstado(Estado.NUEVO);
+					procesosLlegadosEnElInstanteActual.add(proceso);
+				}
+			}
 			
-			this.planificadorServicio.worstFit();
+			//Pregunto si la lista procesosLlegadosEnElInstanteActual esta vacia o no, es decir pregunto si arribaron nuevos 
+			//procesos en el instante actual
+			if (!procesosLlegadosEnElInstanteActual.isEmpty()) {
+				
+				//Si arribaron procesos en el instante actual los agrego a la cola de nuevos,
+				this.colaDeNuevos.addAll(procesosLlegadosEnElInstanteActual);
+				this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+				System.out.println("Arribaron los siguientes procesos en el instante " + tiempo);
+				System.out.println(procesosLlegadosEnElInstanteActual);
+				
+			} else {
+				System.out.println("No arribaron procesos en el instante " + tiempo);
+			}
+			
+			//Pregunto si la cantidad de procesos admitidos es menor al nivel de multiprogramacion
+			if(this.colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION ){
+				
+			}
+			
 					
 			                                                                                                                                                                                            
-			if (cpu.getProceso() == null) {
-	        	cpu.setProceso(colaDeNuevos.get(0));
-	        	cpu.getProceso().setEstado(Estado.EN_EJECUCION);
-	        	colaDeNuevos.remove(0);
-	        }
-	        
-	        this.cpu.getProceso().setTiempoDeIrrupcion(this.cpu.getProceso().getTiempoDeIrrupcion() - 1);
-
-	        
-	        System.out.println("Procesos en cola de nuevos al final del instante " + this.tiempo);
-	        System.out.println(this.colaDeNuevos);
-	        System.out.println("Proceso en CPU: " + this.cpu.getProceso().getId());
-	        gantt = gantt + this.cpu.getProceso().getId() + "-";
-	        System.out.println("Gantt: " + gantt);
-	        System.out.println();
-		
-        	if (this.cpu.getProceso().getTiempoDeIrrupcion() == 0) {
+//			if (cpu.getProceso() == null) {
+//	        	cpu.setProceso(colaDeNuevos.get(0));
+//	        	cpu.getProceso().setEstado(Estado.EN_EJECUCION);
+//	        	colaDeNuevos.remove(0);
+//	        }
+//	        
+//	        this.cpu.getProceso().setTiempoDeIrrupcion(this.cpu.getProceso().getTiempoDeIrrupcion() - 1);
+//
+//	        
+//	        System.out.println("Procesos en cola de nuevos al final del instante " + this.tiempo);
+//	        System.out.println(this.colaDeNuevos);
+//	        System.out.println("Proceso en CPU: " + this.cpu.getProceso().getId());
+//	        gantt = gantt + this.cpu.getProceso().getId() + "-";
+//	        System.out.println("Gantt: " + gantt);
+//	        System.out.println();
+//		
+//        	if (this.cpu.getProceso().getTiempoDeIrrupcion() == 0) {
         		cantidadDeProcesosFinalizados++;
-        		this.cpu.setProceso(null);
-        	}
+//        		this.cpu.setProceso(null);
+//        	}
         	        
 	        this.tiempo++;
 	       			
