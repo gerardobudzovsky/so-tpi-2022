@@ -21,13 +21,17 @@ public class PlanificadorControlador {
 	private List<Proceso> colaDeNuevos;
 	private List<Proceso> colaDeAdmitidos;
 
+	//Constructor
 	public PlanificadorControlador() {
+		super();
 		this.planificadorServicio = new PlanificadorServicio();
 		this.cpu = new Cpu();
 		this.memoriaPrincipal = new MemoriaPrincipal();
-		this.memoriaPrincipal.setTamanho(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS + Constantes.TAMANHO_PARTICION_T_PEQUENHOS);
-		List<Particion> particiones = this.planificadorServicio.inicializarParticiones();		
+		this.memoriaPrincipal.setTamanho(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES
+				+ Constantes.TAMANHO_PARTICION_T_MEDIANOS + Constantes.TAMANHO_PARTICION_T_PEQUENHOS);
+		List<Particion> particiones = this.planificadorServicio.inicializarParticiones();
 		this.memoriaPrincipal.setParticiones(particiones);
+		this.memoriaPrincipal.setParticionSo(this.planificadorServicio.inicializarParticionSo());
 		this.procesosEnArchivoCsv = new ArrayList<Proceso>();
 		this.tiempo = 0;
 		this.colaDeNuevos = new ArrayList<Proceso>();
@@ -51,7 +55,7 @@ public class PlanificadorControlador {
 			//es agregado a la lista procesosLlegadosEnElInstanteActual
 			ArrayList<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
 			for (Proceso proceso : procesosEnArchivoCsv) {
-				if (proceso.getTiempoDeArribo().equals(tiempo)) {
+				if (proceso.getTiempoDeArribo().equals(this.tiempo)) {
 					proceso.setEstado(Estado.NUEVO);
 					procesosLlegadosEnElInstanteActual.add(proceso);
 				}
@@ -67,14 +71,47 @@ public class PlanificadorControlador {
 				System.out.println("Arribaron los siguientes procesos en el instante " + tiempo);
 				System.out.println(procesosLlegadosEnElInstanteActual);
 				
+				if (this.colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
+					
+					Proceso primerProcesoColaNuevos = this.colaDeNuevos.get(0);
+					
+					if (planificadorServicio.existeAlgunaParticionLibre(this.memoriaPrincipal)) {
+						System.out.println("Existe particion libre");
+							if (planificadorServicio.existeAlgunaParticionLibreDondeQuepaElProceso(this.memoriaPrincipal, primerProcesoColaNuevos)) {
+								System.out.println("El proceso cabe en alguna particion");
+								planificadorServicio.worstFit(primerProcesoColaNuevos, this.memoriaPrincipal);
+								System.out.println(this.memoriaPrincipal);
+							} else {
+
+							}
+					} else {
+
+					}
+					
+				} else {
+
+				}
+				
+				
+				
 			} else {
 				System.out.println("No arribaron procesos en el instante " + tiempo);
+				
+				//Pregunto si la cola de nuevos no esta vacia
+				if (!this.colaDeNuevos.isEmpty()) {
+					//Ir a la parte donde pregunta por el nivel de multiprogramacion
+				} else {
+					
+					//Pregunto si en la cola de admitidos (que no esta vacia) hay procesos con estado "listo y suspendido"
+					
+					for (Proceso proceso : this.colaDeAdmitidos) {
+						
+					}
+
+				}
 			}
 			
-			//Pregunto si la cantidad de procesos admitidos es menor al nivel de multiprogramacion
-			if(this.colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION ){
-				
-			}
+
 			
 					
 			                                                                                                                                                                                            

@@ -9,8 +9,23 @@ public class Proceso {
     private Integer tiempoDeArribo;
     private Integer tiempoDeIrrupcion;
     private Estado estado;
+    
+	public Proceso() {
+        super();
+    }
+	
+    public Proceso(String id, Integer tamanho, Integer tiempoDeArribo, Integer tiempoDeIrrupcion, Estado estado) {
+		super();
+		this.id = id;
+		this.tamanho = tamanho;
+		this.tiempoDeArribo = tiempoDeArribo;
+		this.tiempoDeIrrupcion = tiempoDeIrrupcion;
+		this.estado = estado;
+	}
 
-    public Integer getTamanho() {
+
+
+	public Integer getTamanho() {
 		return tamanho;
 	}
 
@@ -41,10 +56,6 @@ public class Proceso {
 	public void setEstado(Estado estado) {
 		this.estado = estado;
 	}
-
-	public Proceso() {
-        super();
-    }
 
     public String getId() {
         return id;

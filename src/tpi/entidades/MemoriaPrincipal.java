@@ -3,6 +3,7 @@ package tpi.entidades;
 import java.util.List;
 
 public class MemoriaPrincipal {
+	private Particion particionSo;
     private List<Particion> particiones;
     private Integer tamanho;
 
@@ -16,7 +17,15 @@ public class MemoriaPrincipal {
         this.tamanho = tamanho;
     }
 
-    public Integer getTamanho() {
+    public Particion getParticionSo() {
+		return particionSo;
+	}
+
+	public void setParticionSo(Particion particionSo) {
+		this.particionSo = particionSo;
+	}
+
+	public Integer getTamanho() {
         return tamanho;
     }
 

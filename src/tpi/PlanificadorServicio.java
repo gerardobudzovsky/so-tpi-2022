@@ -9,6 +9,7 @@ import java.util.List;
 
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
+import tpi.entidades.MemoriaPrincipal;
 import tpi.entidades.Particion;
 import tpi.entidades.Proceso;
 
@@ -31,6 +32,7 @@ public class PlanificadorServicio {
 				proceso.setTiempoDeArribo(Integer.valueOf(campos[1]));
 				proceso.setTiempoDeIrrupcion(Integer.valueOf(campos[2]));
 				Integer tamanhoDeProceso = Integer.valueOf(campos[3]);
+				
 				if (tamanhoDeProceso <= Constantes.TAMANHO_PARTICION_T_GRANDES) {
 					proceso.setTamanho(tamanhoDeProceso);
 				} else {
@@ -56,21 +58,17 @@ public class PlanificadorServicio {
 			return procesos;
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
+			System.out.println("No es un archivo .csv");
+			System.exit(0);
+			
 		}
-		return null;
+		return new ArrayList<Proceso>();
 	}
 
 	public List<Particion> inicializarParticiones(){
 		
 		List<Particion> particiones = new ArrayList<Particion>();
-		
-		Particion particionSo = new Particion();
-		particionSo.setId("SO");
-		particionSo.setTamanho(Constantes.TAMANHO_PARTICION_SO);
-		particionSo.setDireccionInicio(0);
-		particionSo.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO - 1);
-		particiones.add(particionSo);
-		
+				
 		Particion particionTGrandes = new Particion();
 		particionTGrandes.setId("T_GRANDES");
 		particionTGrandes.setTamanho(Constantes.TAMANHO_PARTICION_T_GRANDES);
@@ -95,6 +93,18 @@ public class PlanificadorServicio {
 		return particiones;
 	}
 	
+	public Particion inicializarParticionSo(){
+		
+		Particion particionSo = new Particion();
+		particionSo.setId("SO");
+		particionSo.setTamanho(Constantes.TAMANHO_PARTICION_SO);
+		particionSo.setProceso(new Proceso("SO", 100, 0, 0, Estado.EN_EJECUCION));
+		particionSo.setDireccionInicio(0);
+		particionSo.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO - 1);
+
+		return particionSo;
+	}
+	
 	public List<Proceso> sjf(List<Proceso> colaDeNuevos, List<Proceso> procesosEnArchivoCsv, Integer tiempo){
 		
 		
@@ -108,31 +118,44 @@ public class PlanificadorServicio {
 		return colaDeNuevos;
 	}
 	
-	public void worstFit() {
+	public void worstFit(Proceso procesoAAsignar, MemoriaPrincipal memoriaPrincipal) {
+			
+			Integer indexDeParticionConMayorEspacioRemanente = 0;
+			Integer espacioRemanenteMaximo = 0;
+			for (Particion particion : memoriaPrincipal.getParticiones()) {
+				
+				Integer espacioRemanente = particion.getTamanho() - procesoAAsignar.getTamanho();
+				
+				if (espacioRemanente > espacioRemanenteMaximo ) {
+					espacioRemanenteMaximo = espacioRemanente;
+					indexDeParticionConMayorEspacioRemanente = memoriaPrincipal.getParticiones().indexOf(particion);
+				}
+			}
 
-//        //Worst-Fit
-//		for (Proceso proceso : colaDeNuevos) {
-//			
-//			Integer espacioRemanenteMaximo = 0;
-//			for (Particion particion : this.memoriaPrincipal.getParticiones()) {
-//				
-//				Integer espacioRemanente = particion.getTamanho() - proceso.getTamanho();
-//				
-//				if (! particion.getId().equals("SO") & espacioRemanente > espacioRemanenteMaximo ) {
-//					espacioRemanenteMaximo = espacioRemanente;
-//					particion.setProceso(proceso);
-//				}
-//			}				
-//		}
-//		
-//		for (Particion particion : memoriaPrincipal.getParticiones()) {
-//			if (particion.getId() != "SO") {
-//				System.out.println("Particion " + particion.getId() );
-//				System.out.println("Proceso " + particion.getProceso());
-//			}
-//
-//		}
+			memoriaPrincipal.getParticiones().get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);
 		
 	}
+
+	public boolean existeAlgunaParticionLibre(MemoriaPrincipal memoriaPrincipal) {
+		
+		for (Particion particion : memoriaPrincipal.getParticiones()) {
+			if (particion.getProceso() == null)
+				return true;
+		}
+		
+		return false;
+		
+	}
+	
+	public boolean existeAlgunaParticionLibreDondeQuepaElProceso(MemoriaPrincipal memoriaPrincipal, Proceso proceso) {
+		
+		for (Particion particion : memoriaPrincipal.getParticiones()) {
+			if (particion.getProceso() == null && particion.getTamanho() >= proceso.getTamanho())
+				return true;
+		}
+		return false;
+		
+	}
+	
 	
 }

@@ -6,7 +6,8 @@ public class Particion {
     private Proceso proceso;
     private Integer direccionInicio;
     private Integer direccionFinal;
-
+    
+    
     public Integer getDireccionInicio() {
         return direccionInicio;
     }
