@@ -51,7 +51,7 @@ public class PlanificadorControlador {
 		
 		do {
 			
-			//En este ciclo for recorro los procesos en el csv. Todo proceso del csv con tiempo de arribo igual al tiempo actual
+			//En este ciclo for recorro los procesos del csv. Todo proceso del csv con tiempo de arribo igual al tiempo actual
 			//es agregado a la lista procesosLlegadosEnElInstanteActual
 			ArrayList<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
 			for (Proceso proceso : procesosEnArchivoCsv) {
@@ -71,28 +71,10 @@ public class PlanificadorControlador {
 				System.out.println("Arribaron los siguientes procesos en el instante " + tiempo);
 				System.out.println(procesosLlegadosEnElInstanteActual);
 				
-				if (this.colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
-					
-					Proceso primerProcesoColaNuevos = this.colaDeNuevos.get(0);
-					
-					if (planificadorServicio.existeAlgunaParticionLibre(this.memoriaPrincipal)) {
-						System.out.println("Existe particion libre");
-							if (planificadorServicio.existeAlgunaParticionLibreDondeQuepaElProceso(this.memoriaPrincipal, primerProcesoColaNuevos)) {
-								System.out.println("El proceso cabe en alguna particion");
-								planificadorServicio.worstFit(primerProcesoColaNuevos, this.memoriaPrincipal);
-								System.out.println(this.memoriaPrincipal);
-							} else {
-
-							}
-					} else {
-
-					}
-					
-				} else {
-
-				}
+				//llamada a un metodo que al comiezo pregunta por multiprogramacion
 				
-				
+				planificadorServicio.iterarSobreColaDeNuevos(this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos);
+								
 				
 			} else {
 				System.out.println("No arribaron procesos en el instante " + tiempo);

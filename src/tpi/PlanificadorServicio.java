@@ -121,12 +121,12 @@ public class PlanificadorServicio {
 	public void worstFit(Proceso procesoAAsignar, MemoriaPrincipal memoriaPrincipal) {
 			
 			Integer indexDeParticionConMayorEspacioRemanente = 0;
-			Integer espacioRemanenteMaximo = 0;
+			Integer espacioRemanenteMaximo = Integer.MIN_VALUE;
 			for (Particion particion : memoriaPrincipal.getParticiones()) {
 				
 				Integer espacioRemanente = particion.getTamanho() - procesoAAsignar.getTamanho();
 				
-				if (espacioRemanente > espacioRemanenteMaximo ) {
+				if (espacioRemanente > espacioRemanenteMaximo) {
 					espacioRemanenteMaximo = espacioRemanente;
 					indexDeParticionConMayorEspacioRemanente = memoriaPrincipal.getParticiones().indexOf(particion);
 				}
@@ -155,6 +155,70 @@ public class PlanificadorServicio {
 		}
 		return false;
 		
+	}
+	
+	public void iterarSobreColaDeNuevos(MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos) {
+		
+		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
+			
+			Proceso primerProcesoEnColaDeNuevos = colaDeNuevos.get(0);
+			
+			if (this.existeAlgunaParticionLibre(memoriaPrincipal)) {
+				System.out.println("Existe alguna particion libre en Memoria Principal.");
+					if (this.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnColaDeNuevos)) {
+						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " cabe en una particion de la Memoria Principal");
+						this.worstFit(primerProcesoEnColaDeNuevos, memoriaPrincipal);
+						System.out.println("Se cargo en Memoria Principal el proceso " + primerProcesoEnColaDeNuevos);
+						primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO);
+						colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
+						colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
+						
+							if (colaDeNuevos.size() > 0) {
+								this.iterarSobreColaDeNuevos(memoriaPrincipal, colaDeNuevos, colaDeAdmitidos);
+							} else {
+								//
+							}
+						
+					} else {
+						//Hay una particion libre, pero no entra el proceso actual
+						if ( esPosibleHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos) ) {
+							//TODO
+						} else {
+							primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
+							System.out.println("El proceso se cargo en Memoria Secundaria.");
+						}
+					}
+			} else {
+
+			}
+			
+		} else {
+
+		}
+	}
+	
+	
+	public boolean esPosibleHacerSwap(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo) {
+
+		ArrayList<Proceso> procesosSwapeablesCandidatos = new ArrayList<Proceso>();
+		
+		for (Particion particion : memoriaPrincipal.getParticiones()) {
+
+			if (particion.getProceso() != null && procesoNuevo.getTamanho() <= particion.getTamanho()
+					&& particion.getProceso().getEstado() != Estado.EN_EJECUCION
+					&& procesoNuevo.getTiempoDeIrrupcion() < particion.getProceso().getTiempoDeIrrupcion()) {
+				procesosSwapeablesCandidatos.add(particion.getProceso());
+			}
+		}
+		
+		//procesosSwapeablesCandidatos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+		
+		if (procesosSwapeablesCandidatos.isEmpty()) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	

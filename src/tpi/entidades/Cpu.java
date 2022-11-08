@@ -2,7 +2,7 @@ package tpi.entidades;
 
 public class Cpu {
 	
-	Proceso proceso;
+	private Proceso proceso;
 
 	public Proceso getProceso() {
 		return proceso;
