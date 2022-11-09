@@ -73,8 +73,8 @@ public class PlanificadorControlador {
 				
 				//llamada a un metodo que al comiezo pregunta por multiprogramacion
 				
-				planificadorServicio.iterarSobreColaDeNuevos(this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos);
-								
+				planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
+				planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados, tiempo);
 				
 			} else {
 				System.out.println("No arribaron procesos en el instante " + tiempo);
@@ -97,11 +97,7 @@ public class PlanificadorControlador {
 			
 					
 			                                                                                                                                                                                            
-//			if (cpu.getProceso() == null) {
-//	        	cpu.setProceso(colaDeNuevos.get(0));
-//	        	cpu.getProceso().setEstado(Estado.EN_EJECUCION);
-//	        	colaDeNuevos.remove(0);
-//	        }
+
 //	        
 //	        this.cpu.getProceso().setTiempoDeIrrupcion(this.cpu.getProceso().getTiempoDeIrrupcion() - 1);
 //
@@ -114,11 +110,10 @@ public class PlanificadorControlador {
 //	        System.out.println();
 //		
 //        	if (this.cpu.getProceso().getTiempoDeIrrupcion() == 0) {
-        		cantidadDeProcesosFinalizados++;
 //        		this.cpu.setProceso(null);
 //        	}
         	        
-	        this.tiempo++;
+
 	       			
 		} while (cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
 		

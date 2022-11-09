@@ -9,6 +9,7 @@ import java.util.List;
 
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
+import tpi.entidades.Cpu;
 import tpi.entidades.MemoriaPrincipal;
 import tpi.entidades.Particion;
 import tpi.entidades.Proceso;
@@ -122,10 +123,14 @@ public class PlanificadorServicio {
 			
 			Integer indexDeParticionConMayorEspacioRemanente = 0;
 			Integer espacioRemanenteMaximo = Integer.MIN_VALUE;
+			Integer espacioRemanente = 0;
+			
 			for (Particion particion : memoriaPrincipal.getParticiones()) {
 				
-				Integer espacioRemanente = particion.getTamanho() - procesoAAsignar.getTamanho();
-				
+				if (particion.getProceso() == null && particion.getTamanho() >= procesoAAsignar.getTamanho()) {
+					espacioRemanente = particion.getTamanho() - procesoAAsignar.getTamanho();
+				}
+								
 				if (espacioRemanente > espacioRemanenteMaximo) {
 					espacioRemanenteMaximo = espacioRemanente;
 					indexDeParticionConMayorEspacioRemanente = memoriaPrincipal.getParticiones().indexOf(particion);
@@ -157,36 +162,55 @@ public class PlanificadorServicio {
 		
 	}
 	
-	public void iterarSobreColaDeNuevos(MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos) {
+	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo) {
 		
 		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
 			
+			System.out.println("Cola de Nuevos: " + colaDeNuevos);
+			System.out.println("Cola de Listos: " + this.mostrarColaDeListos(colaDeAdmitidos));
+			System.out.println("Cola de Listos/Suspendidos: " + this.mostrarColaDeListosSuspendidos(colaDeAdmitidos));
+			if (cpu.getProceso() != null) {
+				System.out.println("Proceso ejecutandose: " + cpu.getProceso().getId());
+			} else {
+				System.out.println("No hay proceso en ejecucion");
+			}
 			Proceso primerProcesoEnColaDeNuevos = colaDeNuevos.get(0);
+			System.out.println("Se tomó el proceso " + primerProcesoEnColaDeNuevos.getId() + " de la cola de nuevos.");
 			
 			if (this.existeAlgunaParticionLibre(memoriaPrincipal)) {
-				System.out.println("Existe alguna particion libre en Memoria Principal.");
+				System.out.println("Existe al menos una particion libre en Memoria Principal.");
 					if (this.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnColaDeNuevos)) {
-						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " cabe en una particion de la Memoria Principal");
+						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " cabe en una particion libre de Memoria Principal.");
 						this.worstFit(primerProcesoEnColaDeNuevos, memoriaPrincipal);
-						System.out.println("Se cargo en Memoria Principal el proceso " + primerProcesoEnColaDeNuevos);
+						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
 						primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO);
 						colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
 						colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 						
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(memoriaPrincipal, colaDeNuevos, colaDeAdmitidos);
+								this.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
 							} else {
 								//
 							}
 						
 					} else {
-						//Hay una particion libre, pero no entra el proceso actual
-						if ( esPosibleHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos) ) {
+						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
+						ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
+						if ( esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapeo, tiempo) ) {
 							//TODO
 						} else {
+							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Secundaria.");
 							primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
-							System.out.println("El proceso se cargo en Memoria Secundaria.");
+							colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
+							colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
+							
+							if (colaDeNuevos.size() > 0) {
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
+							} else {
+								
+							}
 						}
 					}
 			} else {
@@ -198,28 +222,84 @@ public class PlanificadorServicio {
 		}
 	}
 	
-	
-	public boolean esPosibleHacerSwap(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo) {
+	public boolean esNecesarioHacerSwap(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo, List<Particion> particionesCandidatasAlSwapeo, Integer tiempo) {
 
-		ArrayList<Proceso> procesosSwapeablesCandidatos = new ArrayList<Proceso>();
+		particionesCandidatasAlSwapeo = new ArrayList<Particion>();
 		
 		for (Particion particion : memoriaPrincipal.getParticiones()) {
 
-			if (particion.getProceso() != null && procesoNuevo.getTamanho() <= particion.getTamanho()
-					&& particion.getProceso().getEstado() != Estado.EN_EJECUCION
+			if (particion.getProceso() != null
+					&& (particion.getProceso().getEstado() != Estado.EN_EJECUCION || tiempo.equals(0) )
+					&& procesoNuevo.getTamanho() <= particion.getTamanho()
 					&& procesoNuevo.getTiempoDeIrrupcion() < particion.getProceso().getTiempoDeIrrupcion()) {
-				procesosSwapeablesCandidatos.add(particion.getProceso());
+				particionesCandidatasAlSwapeo.add(particion);
 			}
 		}
 		
-		//procesosSwapeablesCandidatos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
-		
-		if (procesosSwapeablesCandidatos.isEmpty()) {
+		if (particionesCandidatasAlSwapeo.isEmpty()) {
 			return false;
 		}
 		
 		return true;
 	}
 	
+	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, Integer cantidadDeProcesosFinalizados, Integer tiempo) {
+		
+		if (cpu.getProceso() == null) {
+			
+			if (this.existeProcesoListoEnColaDeAdmitidos(colaDeAdmitidos)) {
+				Proceso primerProcesoListo= colaDeAdmitidos.get(0);
+				primerProcesoListo.setEstado(Estado.EN_EJECUCION);
+				cpu.setProceso(primerProcesoListo);
+				cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
+			}
+		} else {
+			cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
+			if (cpu.getProceso().getTiempoDeIrrupcion().equals(0)) {
+				cpu.getProceso().setEstado(Estado.SALIENTE);
+				cantidadDeProcesosFinalizados++;
+				colaDeAdmitidos.remove(cpu.getProceso());
+				System.out.println("El proceso " + cpu.getProceso().getId() + " finalizo.");
+			}
+		}
+		
+		tiempo++;
+	}
+	
+	public boolean existeProcesoListoEnColaDeAdmitidos(List<Proceso> colaDeAdmitidos) {
+		
+		for (Proceso proceso : colaDeAdmitidos) {
+			if (proceso.getEstado().equals(Estado.LISTO)) 
+				return true;
+		}
+		
+		return false;
+	}
+	
+	public String mostrarColaDeListos(List<Proceso> colaDeAdmitidos) {
+		String salida = "[";
+		
+		for (Proceso proceso : colaDeAdmitidos) {
+			if (proceso.getEstado().equals(Estado.LISTO)) {
+				salida = salida + proceso.toString() + " ";
+			}
+		}
+		
+		salida = salida + "]";
+		return salida;
+	}
+	
+	public String mostrarColaDeListosSuspendidos(List<Proceso> colaDeAdmitidos) {
+		String salida = "[ ";
+		
+		for (Proceso proceso : colaDeAdmitidos) {
+			if (proceso.getEstado().equals(Estado.LISTO_SUSPENDIDO)) {
+				salida = salida + proceso.toString() + " ";
+			}
+		}
+		
+		salida = salida + " ]";
+		return salida;
+	}
 	
 }

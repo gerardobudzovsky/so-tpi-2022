@@ -73,7 +73,7 @@ public class Proceso {
 	
 	@Override
 	public String toString() {
-		return this.id;
+		return this.id + " TI=" + this.tiempoDeIrrupcion + " Tamanho=" + this.tamanho;
 	}
     
 
