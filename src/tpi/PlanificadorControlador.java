@@ -51,15 +51,9 @@ public class PlanificadorControlador {
 		
 		do {
 			
-			//En este ciclo for recorro los procesos del csv. Todo proceso del csv con tiempo de arribo igual al tiempo actual
+			//En este metodo todo proceso del csv con tiempo de arribo igual al tiempo actual
 			//es agregado a la lista procesosLlegadosEnElInstanteActual
-			ArrayList<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
-			for (Proceso proceso : procesosEnArchivoCsv) {
-				if (proceso.getTiempoDeArribo().equals(this.tiempo)) {
-					proceso.setEstado(Estado.NUEVO);
-					procesosLlegadosEnElInstanteActual.add(proceso);
-				}
-			}
+			List<Proceso> procesosLlegadosEnElInstanteActual = this.planificadorServicio.obtenerProcesosLlegadosEnElInstanteActual(this.procesosEnArchivoCsv, this.tiempo);
 			
 			//Pregunto si la lista procesosLlegadosEnElInstanteActual esta vacia o no, es decir pregunto si arribaron nuevos 
 			//procesos en el instante actual
@@ -73,48 +67,64 @@ public class PlanificadorControlador {
 				
 				//llamada a un metodo que al comiezo pregunta por multiprogramacion
 				
-				planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
-				planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados, tiempo);
-				
+				this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
+				this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
+
 			} else {
-				System.out.println("No arribaron procesos en el instante " + tiempo);
+				System.out.println("No arribaron procesos en el instante " + this.tiempo);
 				
 				//Pregunto si la cola de nuevos no esta vacia
 				if (!this.colaDeNuevos.isEmpty()) {
-					//Ir a la parte donde pregunta por el nivel de multiprogramacion
+					this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
+					this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
 				} else {
 					
 					//Pregunto si en la cola de admitidos (que no esta vacia) hay procesos con estado "listo y suspendido"
-					
-					for (Proceso proceso : this.colaDeAdmitidos) {
-						
+					if (this.planificadorServicio.existenProcesosEnMemoriaSecundaria(this.colaDeAdmitidos)) {
+						//Tomo el primer proceso de la cola de listos/suspendidos
+						Proceso primerProcesoEnMemoriaSecundaria = this.planificadorServicio.obtenerPrimerProcesoEnMemoriaSecundaria(this.colaDeAdmitidos);
+						if (this.planificadorServicio.existeAlgunaParticionLibre(memoriaPrincipal)) {
+							System.out.println("Existe al menos una particion libre en Memoria Principal.");
+							if (this.planificadorServicio.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnMemoriaSecundaria)) {
+								//TODO
+							} else {
+								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
+								ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
+								
+								if ( this.planificadorServicio.esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, particionesCandidatasAlSwapeo, tiempo) ) {
+									//TODO
+								} else {
+									System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
+									
+									if (colaDeNuevos.size() > 0) {
+										this.planificadorServicio.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
+									} else {
+										this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
+									}
+								}
+								
+							}
+						} else {
+							//TODO
+						}
+					} else {
+						//TODO
 					}
-
 				}
 			}
 			
 
-			
-					
-			                                                                                                                                                                                            
-
-//	        
-//	        this.cpu.getProceso().setTiempoDeIrrupcion(this.cpu.getProceso().getTiempoDeIrrupcion() - 1);
-//
-//	        
-//	        System.out.println("Procesos en cola de nuevos al final del instante " + this.tiempo);
-//	        System.out.println(this.colaDeNuevos);
-//	        System.out.println("Proceso en CPU: " + this.cpu.getProceso().getId());
-//	        gantt = gantt + this.cpu.getProceso().getId() + "-";
 //	        System.out.println("Gantt: " + gantt);
-//	        System.out.println();
-//		
-//        	if (this.cpu.getProceso().getTiempoDeIrrupcion() == 0) {
-//        		this.cpu.setProceso(null);
-//        	}
         	        
+			System.out.println("AL FINAL DEL INSTANTE " + this.tiempo + " TENEMOS:");
+			System.out.println("En ejecución: " + this.cpu.getProceso().getId());
+			System.out.println("Cola de Listos: " + this.planificadorServicio.mostrarColaDeListos(colaDeAdmitidos));
+			System.out.println("Cola de Listos/Suspendidos: " + this.planificadorServicio.mostrarColaDeListosSuspendidos(colaDeAdmitidos));
+			System.out.println("Admitidos: " + this.colaDeAdmitidos);
+			System.out.println("Cola de Nuevos: " + this.colaDeNuevos);
+			
+			this.tiempo++;
 
-	       			
 		} while (cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
 		
 	}

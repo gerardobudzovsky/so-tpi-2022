@@ -16,6 +16,46 @@ import tpi.entidades.Proceso;
 
 public class PlanificadorServicio {
 
+	public List<Particion> inicializarParticiones(){
+		
+		List<Particion> particiones = new ArrayList<Particion>();
+				
+		Particion particionTGrandes = new Particion();
+		particionTGrandes.setId("T_GRANDES");
+		particionTGrandes.setTamanho(Constantes.TAMANHO_PARTICION_T_GRANDES);
+		particionTGrandes.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO);
+		particionTGrandes.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES - 1);
+		particiones.add(particionTGrandes);
+		
+		Particion particionTMedianos = new Particion();
+		particionTMedianos.setId("T_MEDIANOS");
+		particionTMedianos.setTamanho(Constantes.TAMANHO_PARTICION_T_MEDIANOS);
+		particionTMedianos.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES);
+		particionTMedianos.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS - 1);
+		particiones.add(particionTMedianos);
+		
+		Particion particionTPequenhos = new Particion();
+		particionTPequenhos.setId("T_PEQUENHOS");
+		particionTPequenhos.setTamanho(Constantes.TAMANHO_PARTICION_T_PEQUENHOS);
+		particionTPequenhos.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS);
+		particionTPequenhos.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS + Constantes.TAMANHO_PARTICION_T_PEQUENHOS - 1);
+		particiones.add(particionTPequenhos);
+		
+		return particiones;
+	}
+	
+	public Particion inicializarParticionSo(){
+		
+		Particion particionSo = new Particion();
+		particionSo.setId("SO");
+		particionSo.setTamanho(Constantes.TAMANHO_PARTICION_SO);
+		particionSo.setProceso(new Proceso("SO", 100, 0, 0, Estado.EN_EJECUCION));
+		particionSo.setDireccionInicio(0);
+		particionSo.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO - 1);
+
+		return particionSo;
+	}
+
 	public List<Proceso> leerProcesos() {
 
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(Constantes.NOMBRE_CSV))) {
@@ -64,59 +104,21 @@ public class PlanificadorServicio {
 			
 		}
 		return new ArrayList<Proceso>();
-	}
-
-	public List<Particion> inicializarParticiones(){
-		
-		List<Particion> particiones = new ArrayList<Particion>();
-				
-		Particion particionTGrandes = new Particion();
-		particionTGrandes.setId("T_GRANDES");
-		particionTGrandes.setTamanho(Constantes.TAMANHO_PARTICION_T_GRANDES);
-		particionTGrandes.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO);
-		particionTGrandes.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES - 1);
-		particiones.add(particionTGrandes);
-		
-		Particion particionTMedianos = new Particion();
-		particionTMedianos.setId("T_MEDIANOS");
-		particionTMedianos.setTamanho(Constantes.TAMANHO_PARTICION_T_MEDIANOS);
-		particionTMedianos.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES);
-		particionTMedianos.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS - 1);
-		particiones.add(particionTMedianos);
-		
-		Particion particionTPequenhos = new Particion();
-		particionTPequenhos.setId("T_PEQUENHOS");
-		particionTPequenhos.setTamanho(Constantes.TAMANHO_PARTICION_T_PEQUENHOS);
-		particionTPequenhos.setDireccionInicio(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS);
-		particionTPequenhos.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO + Constantes.TAMANHO_PARTICION_T_GRANDES + Constantes.TAMANHO_PARTICION_T_MEDIANOS + Constantes.TAMANHO_PARTICION_T_PEQUENHOS - 1);
-		particiones.add(particionTPequenhos);
-		
-		return particiones;
-	}
+	}	
 	
-	public Particion inicializarParticionSo(){
-		
-		Particion particionSo = new Particion();
-		particionSo.setId("SO");
-		particionSo.setTamanho(Constantes.TAMANHO_PARTICION_SO);
-		particionSo.setProceso(new Proceso("SO", 100, 0, 0, Estado.EN_EJECUCION));
-		particionSo.setDireccionInicio(0);
-		particionSo.setDireccionFinal(Constantes.TAMANHO_PARTICION_SO - 1);
-
-		return particionSo;
-	}
+	public List<Proceso> obtenerProcesosLlegadosEnElInstanteActual(List<Proceso> procesosEnArchivoCsv, Integer tiempo){
 	
-	public List<Proceso> sjf(List<Proceso> colaDeNuevos, List<Proceso> procesosEnArchivoCsv, Integer tiempo){
-		
+		List<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
 		
 		for (Proceso proceso : procesosEnArchivoCsv) {
 			if (proceso.getTiempoDeArribo().equals(tiempo)) {
 				proceso.setEstado(Estado.NUEVO);
-				colaDeNuevos.add(proceso);
+				procesosLlegadosEnElInstanteActual.add(proceso);
 			}
 		}
-		colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
-		return colaDeNuevos;
+		
+		return procesosLlegadosEnElInstanteActual;
+	
 	}
 	
 	public void worstFit(Proceso procesoAAsignar, MemoriaPrincipal memoriaPrincipal) {
@@ -191,7 +193,7 @@ public class PlanificadorServicio {
 							if (colaDeNuevos.size() > 0) {
 								this.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
 							} else {
-								//
+								//TODO
 							}
 						
 					} else {
@@ -209,12 +211,21 @@ public class PlanificadorServicio {
 							if (colaDeNuevos.size() > 0) {
 								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
 							} else {
-								
+								//TODO
 							}
 						}
 					}
 			} else {
+				
+				System.out.println("No hay ninguna particion libre en Memoria Principal.");
+				ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
+				if ( esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapeo, tiempo) ) {
+					//TODO
+				}else {
+					//TODO
+				}
 
+				
 			}
 			
 		} else {
@@ -243,7 +254,7 @@ public class PlanificadorServicio {
 		return true;
 	}
 	
-	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, Integer cantidadDeProcesosFinalizados, Integer tiempo) {
+	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, Integer cantidadDeProcesosFinalizados) {
 		
 		if (cpu.getProceso() == null) {
 			
@@ -263,7 +274,6 @@ public class PlanificadorServicio {
 			}
 		}
 		
-		tiempo++;
 	}
 	
 	public boolean existeProcesoListoEnColaDeAdmitidos(List<Proceso> colaDeAdmitidos) {
@@ -281,7 +291,7 @@ public class PlanificadorServicio {
 		
 		for (Proceso proceso : colaDeAdmitidos) {
 			if (proceso.getEstado().equals(Estado.LISTO)) {
-				salida = salida + proceso.toString() + " ";
+				salida = salida + proceso.toString() + ",";
 			}
 		}
 		
@@ -294,12 +304,28 @@ public class PlanificadorServicio {
 		
 		for (Proceso proceso : colaDeAdmitidos) {
 			if (proceso.getEstado().equals(Estado.LISTO_SUSPENDIDO)) {
-				salida = salida + proceso.toString() + " ";
+				salida = salida + proceso.toString() + ", ";
 			}
 		}
 		
-		salida = salida + " ]";
+		salida = salida + "]";
 		return salida;
+	}
+
+	public boolean existenProcesosEnMemoriaSecundaria(List<Proceso> colaDeAdmitidos) {
+		for (Proceso proceso : colaDeAdmitidos) {
+			if (proceso.getEstado().equals(Estado.LISTO_SUSPENDIDO))
+				return true;
+		}
+		return false;		
+	}
+
+	public Proceso obtenerPrimerProcesoEnMemoriaSecundaria(List<Proceso> colaDeAdmitidos) {
+		for (Proceso proceso : colaDeAdmitidos) {
+			if (proceso.getEstado().equals(Estado.LISTO_SUSPENDIDO))
+				return proceso;
+		}
+		return new Proceso();	
 	}
 	
 }
