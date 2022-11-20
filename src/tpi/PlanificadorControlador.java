@@ -67,16 +67,14 @@ public class PlanificadorControlador {
 				
 				//llamada a un metodo que al comiezo pregunta por multiprogramacion
 				
-				this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
-				this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
+				this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
 
 			} else {
 				System.out.println("No arribaron procesos en el instante " + this.tiempo);
 				
 				//Pregunto si la cola de nuevos no esta vacia
 				if (!this.colaDeNuevos.isEmpty()) {
-					this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo);
-					this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
+					this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
 				} else {
 					
 					//Pregunto si en la cola de admitidos (que no esta vacia) hay procesos con estado "listo y suspendido"
@@ -86,6 +84,19 @@ public class PlanificadorControlador {
 						if (this.planificadorServicio.existeAlgunaParticionLibre(memoriaPrincipal)) {
 							System.out.println("Existe al menos una particion libre en Memoria Principal.");
 							if (this.planificadorServicio.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnMemoriaSecundaria)) {
+								
+								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " cabe en una particion libre de Memoria Principal.");
+								this.planificadorServicio.worstFit(primerProcesoEnMemoriaSecundaria, memoriaPrincipal);
+								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se cargo en Memoria Principal.");
+								primerProcesoEnMemoriaSecundaria.setEstado(Estado.LISTO);
+								this.colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+								
+									if (colaDeNuevos.size() > 0) {
+										this.planificadorServicio.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
+									} else {
+										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
+									}
+								
 								//TODO
 							} else {
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
@@ -97,15 +108,28 @@ public class PlanificadorControlador {
 									System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
 									
 									if (colaDeNuevos.size() > 0) {
-										this.planificadorServicio.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
+										this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
 									} else {
-										this.planificadorServicio.trabajoEnCpu(cpu, colaDeAdmitidos, cantidadDeProcesosFinalizados);
+										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
 									}
 								}
 								
 							}
 						} else {
 							//TODO
+							System.out.println("No hay ninguna particion libre en Memoria Principal.");
+							ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
+							if ( this.planificadorServicio.esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, particionesCandidatasAlSwapeo, tiempo) ) {
+								//TODO
+							}else {
+								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
+								
+								if (colaDeNuevos.size() > 0) {
+									this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
+								} else {
+									this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
+								}
+							}
 						}
 					} else {
 						//TODO
@@ -115,15 +139,24 @@ public class PlanificadorControlador {
 			
 
 //	        System.out.println("Gantt: " + gantt);
-        	        
+        	System.out.println();        	
 			System.out.println("AL FINAL DEL INSTANTE " + this.tiempo + " TENEMOS:");
-			System.out.println("En ejecución: " + this.cpu.getProceso().getId());
+			if (this.cpu.getProceso() != null) {
+				System.out.println("En ejecución: " + this.cpu.getProceso().getId() + " TI=" + this.cpu.getProceso().getTiempoDeIrrupcion());
+			} else {
+				System.out.println("En ejecución: NO HAY");
+			}
 			System.out.println("Cola de Listos: " + this.planificadorServicio.mostrarColaDeListos(colaDeAdmitidos));
 			System.out.println("Cola de Listos/Suspendidos: " + this.planificadorServicio.mostrarColaDeListosSuspendidos(colaDeAdmitidos));
 			System.out.println("Admitidos: " + this.colaDeAdmitidos);
 			System.out.println("Cola de Nuevos: " + this.colaDeNuevos);
+			System.out.print(this.memoriaPrincipal.getParticiones().get(0));
+			System.out.print(this.memoriaPrincipal.getParticiones().get(1));
+			System.out.print(this.memoriaPrincipal.getParticiones().get(2));
+			System.out.println();
 			
 			this.tiempo++;
+			
 
 		} while (cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
 		

@@ -164,7 +164,7 @@ public class PlanificadorServicio {
 		
 	}
 	
-	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo) {
+	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo, Integer cantidadDeProcesosFinalizados) {
 		
 		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
 			
@@ -191,9 +191,9 @@ public class PlanificadorServicio {
 						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 						
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
 							} else {
-								//TODO
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
 							}
 						
 					} else {
@@ -209,9 +209,9 @@ public class PlanificadorServicio {
 							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 							
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo);
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
 							} else {
-								//TODO
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
 							}
 						}
 					}
@@ -254,9 +254,28 @@ public class PlanificadorServicio {
 		return true;
 	}
 	
-	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, Integer cantidadDeProcesosFinalizados) {
+	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, Integer cantidadDeProcesosFinalizados) {
 		
-		if (cpu.getProceso() == null) {
+		if (cpu.getProceso() != null) {
+			
+			cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
+			
+			if (cpu.getProceso().getTiempoDeIrrupcion().equals(0)) {
+				cpu.getProceso().setEstado(Estado.SALIENTE);
+				cantidadDeProcesosFinalizados++;
+				colaDeAdmitidos.remove(cpu.getProceso());
+				
+				for (Particion particion : memoriaPrincipal.getParticiones()) {
+					if (particion.getProceso().equals(cpu.getProceso())) {
+						particion.setProceso(null);
+					}
+				}
+				
+				System.out.println("El proceso " + cpu.getProceso().getId() + " finalizo.");
+				cpu.setProceso(null);
+			}
+			
+		} else {
 			
 			if (this.existeProcesoListoEnColaDeAdmitidos(colaDeAdmitidos)) {
 				Proceso primerProcesoListo= colaDeAdmitidos.get(0);
@@ -264,14 +283,7 @@ public class PlanificadorServicio {
 				cpu.setProceso(primerProcesoListo);
 				cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
 			}
-		} else {
-			cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
-			if (cpu.getProceso().getTiempoDeIrrupcion().equals(0)) {
-				cpu.getProceso().setEstado(Estado.SALIENTE);
-				cantidadDeProcesosFinalizados++;
-				colaDeAdmitidos.remove(cpu.getProceso());
-				System.out.println("El proceso " + cpu.getProceso().getId() + " finalizo.");
-			}
+
 		}
 		
 	}
@@ -291,7 +303,7 @@ public class PlanificadorServicio {
 		
 		for (Proceso proceso : colaDeAdmitidos) {
 			if (proceso.getEstado().equals(Estado.LISTO)) {
-				salida = salida + proceso.toString() + ",";
+				salida = salida + proceso.toString() + ", ";
 			}
 		}
 		
@@ -300,7 +312,7 @@ public class PlanificadorServicio {
 	}
 	
 	public String mostrarColaDeListosSuspendidos(List<Proceso> colaDeAdmitidos) {
-		String salida = "[ ";
+		String salida = "[";
 		
 		for (Proceso proceso : colaDeAdmitidos) {
 			if (proceso.getEstado().equals(Estado.LISTO_SUSPENDIDO)) {
