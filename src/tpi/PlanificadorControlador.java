@@ -41,12 +41,12 @@ public class PlanificadorControlador {
 		this.cantidadDeProcesosFinalizados = new CantidadDeProcesosFinalizados(0);
 	}
 	
-	public void ejecutar() {
+	public void ejecutar(String pathDeArchivo) {
 		
 		String gantt = "";
 		//En el metodo leerProcesos() leemos los procesos del csv, controlamos su formato y 
 		//y si no hay errores los cargamos en la lista procesosEnArchivoCsv
-		this.procesosEnArchivoCsv = this.planificadorServicio.leerProcesos();
+		this.procesosEnArchivoCsv = this.planificadorServicio.leerProcesos(pathDeArchivo);
 		
 //		System.out.println("Memoria Principal");
 //		System.out.println(memoriaPrincipal);
@@ -104,7 +104,6 @@ public class PlanificadorControlador {
 										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, this.cantidadDeProcesosFinalizados);
 									}
 								
-								//TODO
 							} else {
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
 

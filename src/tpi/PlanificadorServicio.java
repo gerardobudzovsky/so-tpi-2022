@@ -57,9 +57,9 @@ public class PlanificadorServicio {
 		return particionSo;
 	}
 
-	public List<Proceso> leerProcesos() {
+	public List<Proceso> leerProcesos(String pathDeArchivo) {
 
-		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(Constantes.NOMBRE_CSV))) {
+		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(pathDeArchivo))) {
 
 			String linea = bufferedReader.readLine();
 			List<Proceso> procesos = new ArrayList<Proceso>();
