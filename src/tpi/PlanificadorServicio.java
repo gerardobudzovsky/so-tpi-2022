@@ -9,6 +9,7 @@ import java.util.List;
 
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
+import tpi.entidades.CantidadDeProcesosFinalizados;
 import tpi.entidades.Cpu;
 import tpi.entidades.MemoriaPrincipal;
 import tpi.entidades.Particion;
@@ -185,7 +186,7 @@ public class PlanificadorServicio {
 		
 	}
 	
-	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo, Integer cantidadDeProcesosFinalizados) {
+	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados) {
 		
 		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
 			
@@ -303,7 +304,7 @@ public class PlanificadorServicio {
 		
 	}	
 	
-	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, Integer cantidadDeProcesosFinalizados) {
+	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados) {
 		
 		if (cpu.getProceso() != null) {
 			
@@ -311,7 +312,7 @@ public class PlanificadorServicio {
 			
 			if (cpu.getProceso().getTiempoDeIrrupcion().equals(0)) {
 				cpu.getProceso().setEstado(Estado.SALIENTE);
-				cantidadDeProcesosFinalizados++;
+				cantidadDeProcesosFinalizados.valor++;
 				colaDeAdmitidos.remove(cpu.getProceso());
 				
 				for (Particion particion : memoriaPrincipal.getParticiones()) {

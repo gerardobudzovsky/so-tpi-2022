@@ -6,6 +6,7 @@ import java.util.List;
 
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
+import tpi.entidades.CantidadDeProcesosFinalizados;
 import tpi.entidades.Cpu;
 import tpi.entidades.MemoriaPrincipal;
 import tpi.entidades.Particion;
@@ -20,7 +21,7 @@ public class PlanificadorControlador {
 	private Integer tiempo;
 	private List<Proceso> colaDeNuevos;
 	private List<Proceso> colaDeAdmitidos;
-	private Integer cantidadDeProcesosFinalizados;
+	private CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados;
 
 	//Constructor
 	public PlanificadorControlador() {
@@ -37,7 +38,7 @@ public class PlanificadorControlador {
 		this.tiempo = 0;
 		this.colaDeNuevos = new ArrayList<Proceso>();
 		this.colaDeAdmitidos = new ArrayList<Proceso>();
-		this.cantidadDeProcesosFinalizados = 0;
+		this.cantidadDeProcesosFinalizados = new CantidadDeProcesosFinalizados(0);
 	}
 	
 	public void ejecutar() {
@@ -163,7 +164,7 @@ public class PlanificadorControlador {
 			this.tiempo++;
 			
 
-		} while (this.cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
+		} while (this.cantidadDeProcesosFinalizados.valor < procesosEnArchivoCsv.size());
 		
 	}
 	
