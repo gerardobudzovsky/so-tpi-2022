@@ -111,17 +111,15 @@ public class PlanificadorServicio {
 		List<Proceso> procesosLlegadosEnElInstanteActual = new ArrayList<Proceso>();
 		
 		for (Proceso proceso : procesosEnArchivoCsv) {
-			if (proceso.getTiempoDeArribo().equals(tiempo)) {
-				proceso.setEstado(Estado.NUEVO);
+			if (proceso.getTiempoDeArribo().equals(tiempo))
 				procesosLlegadosEnElInstanteActual.add(proceso);
-			}
 		}
 		
 		return procesosLlegadosEnElInstanteActual;
 	
 	}
 	
-	public void worstFit(Proceso procesoAAsignar, MemoriaPrincipal memoriaPrincipal) {
+	public void worstFitEnMemoriaPrincipal(Proceso procesoAAsignar, MemoriaPrincipal memoriaPrincipal) {
 			
 			Integer indexDeParticionConMayorEspacioRemanente = 0;
 			Integer espacioRemanenteMaximo = Integer.MIN_VALUE;
@@ -138,10 +136,33 @@ public class PlanificadorServicio {
 					indexDeParticionConMayorEspacioRemanente = memoriaPrincipal.getParticiones().indexOf(particion);
 				}
 			}
-
+			procesoAAsignar.setEstado(Estado.LISTO);
 			memoriaPrincipal.getParticiones().get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);
 		
 	}
+	
+	public void worstFitEnParticionesCandidatasAlSwapping(Proceso procesoAAsignar, List<Particion> particionesCandidatasAlSwapping) {
+		
+		Integer indexDeParticionConMayorEspacioRemanente = 0;
+		Integer espacioRemanenteMaximo = Integer.MIN_VALUE;
+		Integer espacioRemanente = 0;
+		
+		for (Particion particion : particionesCandidatasAlSwapping) {
+			
+			if (particion.getTamanho() >= procesoAAsignar.getTamanho()) {
+				espacioRemanente = particion.getTamanho() - procesoAAsignar.getTamanho();
+			}
+							
+			if (espacioRemanente > espacioRemanenteMaximo) {
+				espacioRemanenteMaximo = espacioRemanente;
+				indexDeParticionConMayorEspacioRemanente = particionesCandidatasAlSwapping.indexOf(particion);
+			}
+		}
+		
+		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).getProceso().setEstado(Estado.LISTO_SUSPENDIDO);;
+		procesoAAsignar.setEstado(Estado.LISTO);
+		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);	
+}
 
 	public boolean existeAlgunaParticionLibre(MemoriaPrincipal memoriaPrincipal) {
 		
@@ -183,9 +204,8 @@ public class PlanificadorServicio {
 				System.out.println("Existe al menos una particion libre en Memoria Principal.");
 					if (this.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnColaDeNuevos)) {
 						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " cabe en una particion libre de Memoria Principal.");
-						this.worstFit(primerProcesoEnColaDeNuevos, memoriaPrincipal);
+						this.worstFitEnMemoriaPrincipal(primerProcesoEnColaDeNuevos, memoriaPrincipal);
 						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
-						primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO);
 						colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
 						colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
@@ -198,9 +218,22 @@ public class PlanificadorServicio {
 						
 					} else {
 						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
-						ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
-						if ( esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapeo, tiempo) ) {
+						if ( esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo) ) {
 							//TODO
+							List<Particion> particionesCandidatasAlSwapping = this.obtenerParticionesCandidatasParaSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo);
+							this.worstFitEnParticionesCandidatasAlSwapping(primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapping);
+							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
+							colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
+							colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
+							
+							if (colaDeNuevos.size() > 0) {
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
+							} else {
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
+							}
+							
+							
 						} else {
 							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Secundaria.");
 							primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
@@ -218,8 +251,7 @@ public class PlanificadorServicio {
 			} else {
 				
 				System.out.println("No hay ninguna particion libre en Memoria Principal.");
-				ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
-				if ( esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapeo, tiempo) ) {
+				if ( esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo) ) {
 					//TODO
 				}else {
 					//TODO
@@ -233,9 +265,9 @@ public class PlanificadorServicio {
 		}
 	}
 	
-	public boolean esNecesarioHacerSwap(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo, List<Particion> particionesCandidatasAlSwapeo, Integer tiempo) {
+	public boolean esFactibleHacerSwapping(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo, Integer tiempo) {
 
-		particionesCandidatasAlSwapeo = new ArrayList<Particion>();
+		List<Particion> particionesCandidatasParaSwapping = new ArrayList<Particion>();
 		
 		for (Particion particion : memoriaPrincipal.getParticiones()) {
 
@@ -243,16 +275,33 @@ public class PlanificadorServicio {
 					&& (particion.getProceso().getEstado() != Estado.EN_EJECUCION || tiempo.equals(0) )
 					&& procesoNuevo.getTamanho() <= particion.getTamanho()
 					&& procesoNuevo.getTiempoDeIrrupcion() < particion.getProceso().getTiempoDeIrrupcion()) {
-				particionesCandidatasAlSwapeo.add(particion);
+				particionesCandidatasParaSwapping.add(particion);
 			}
 		}
 		
-		if (particionesCandidatasAlSwapeo.isEmpty()) {
+		if (particionesCandidatasParaSwapping.isEmpty())
 			return false;
-		}
 		
 		return true;
 	}
+	
+	public List<Particion> obtenerParticionesCandidatasParaSwapping(MemoriaPrincipal memoriaPrincipal, Proceso procesoNuevo, Integer tiempo) {
+
+		List<Particion> particionesCandidatasParaSwapping = new ArrayList<Particion>();
+		
+		for (Particion particion : memoriaPrincipal.getParticiones()) {
+
+			if (particion.getProceso() != null
+					&& (particion.getProceso().getEstado() != Estado.EN_EJECUCION || tiempo.equals(0) )
+					&& procesoNuevo.getTamanho() <= particion.getTamanho()
+					&& procesoNuevo.getTiempoDeIrrupcion() < particion.getProceso().getTiempoDeIrrupcion()) {
+				particionesCandidatasParaSwapping.add(particion);
+			}
+		}
+		
+		return particionesCandidatasParaSwapping;
+		
+	}	
 	
 	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, Integer cantidadDeProcesosFinalizados) {
 		
@@ -266,7 +315,7 @@ public class PlanificadorServicio {
 				colaDeAdmitidos.remove(cpu.getProceso());
 				
 				for (Particion particion : memoriaPrincipal.getParticiones()) {
-					if (particion.getProceso().equals(cpu.getProceso())) {
+					if (particion.getProceso() != null && particion.getProceso().equals(cpu.getProceso())) {
 						particion.setProceso(null);
 					}
 				}
@@ -277,8 +326,26 @@ public class PlanificadorServicio {
 			
 		} else {
 			
-			if (this.existeProcesoListoEnColaDeAdmitidos(colaDeAdmitidos)) {
-				Proceso primerProcesoListo= colaDeAdmitidos.get(0);
+			if (this.existeProcesoListoEnColaDeAdmitidos(colaDeAdmitidos)) {				
+				List<Proceso> colaDeListos = new ArrayList<Proceso>();
+				
+				for (Proceso proceso : colaDeAdmitidos) {
+					if (proceso.getEstado().equals(Estado.LISTO)) {
+						colaDeListos.add(proceso);
+					}
+				}
+				colaDeListos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+				Proceso primerProcesoListo = new Proceso();
+				
+				//TODO hacer un metodo para el caso en que haya dos procesos en estado listo con el mismo tiempo de irrupicion
+				//TODO en ese caso se debe elegir el proceso con el tiempo de arriba mas bajo
+				if (colaDeListos.size() > 1 
+						&& colaDeListos.get(0).getTiempoDeIrrupcion().equals(colaDeListos.get(1).getTiempoDeIrrupcion())
+						&& colaDeListos.get(0).getTiempoDeArribo() <  colaDeListos.get(1).getTiempoDeArribo()) {
+					primerProcesoListo = colaDeListos.get(1);
+				}else {
+					primerProcesoListo = colaDeListos.get(0);
+				}
 				primerProcesoListo.setEstado(Estado.EN_EJECUCION);
 				cpu.setProceso(primerProcesoListo);
 				cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
@@ -289,12 +356,10 @@ public class PlanificadorServicio {
 	}
 	
 	public boolean existeProcesoListoEnColaDeAdmitidos(List<Proceso> colaDeAdmitidos) {
-		
 		for (Proceso proceso : colaDeAdmitidos) {
 			if (proceso.getEstado().equals(Estado.LISTO)) 
 				return true;
 		}
-		
 		return false;
 	}
 	

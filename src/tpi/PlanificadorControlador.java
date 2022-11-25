@@ -59,7 +59,12 @@ public class PlanificadorControlador {
 			//procesos en el instante actual
 			if (!procesosLlegadosEnElInstanteActual.isEmpty()) {
 				
-				//Si arribaron procesos en el instante actual los agrego a la cola de nuevos,
+				// Si arribaron procesos en el instante actual, seteo los procesos con Estado NUEVO
+				for (Proceso proceso : procesosLlegadosEnElInstanteActual) {
+					proceso.setEstado(Estado.NUEVO);
+				}
+				
+				// Agrego los procesos a la cola de nuevos,
 				this.colaDeNuevos.addAll(procesosLlegadosEnElInstanteActual);
 				this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 				System.out.println("Arribaron los siguientes procesos en el instante " + tiempo);
@@ -86,9 +91,8 @@ public class PlanificadorControlador {
 							if (this.planificadorServicio.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnMemoriaSecundaria)) {
 								
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " cabe en una particion libre de Memoria Principal.");
-								this.planificadorServicio.worstFit(primerProcesoEnMemoriaSecundaria, memoriaPrincipal);
+								this.planificadorServicio.worstFitEnMemoriaPrincipal(primerProcesoEnMemoriaSecundaria, memoriaPrincipal);
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se cargo en Memoria Principal.");
-								primerProcesoEnMemoriaSecundaria.setEstado(Estado.LISTO);
 								this.colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 								
 									if (colaDeNuevos.size() > 0) {
@@ -100,9 +104,8 @@ public class PlanificadorControlador {
 								//TODO
 							} else {
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
-								ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
-								
-								if ( this.planificadorServicio.esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, particionesCandidatasAlSwapeo, tiempo) ) {
+
+								if ( this.planificadorServicio.esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, tiempo) ) {
 									//TODO
 								} else {
 									System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
@@ -118,8 +121,8 @@ public class PlanificadorControlador {
 						} else {
 							//TODO
 							System.out.println("No hay ninguna particion libre en Memoria Principal.");
-							ArrayList<Particion> particionesCandidatasAlSwapeo = new ArrayList<Particion>();
-							if ( this.planificadorServicio.esNecesarioHacerSwap(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, particionesCandidatasAlSwapeo, tiempo) ) {
+							
+							if ( this.planificadorServicio.esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnMemoriaSecundaria, tiempo) ) {
 								//TODO
 							}else {
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
