@@ -20,6 +20,7 @@ public class PlanificadorControlador {
 	private Integer tiempo;
 	private List<Proceso> colaDeNuevos;
 	private List<Proceso> colaDeAdmitidos;
+	private Integer cantidadDeProcesosFinalizados;
 
 	//Constructor
 	public PlanificadorControlador() {
@@ -36,11 +37,11 @@ public class PlanificadorControlador {
 		this.tiempo = 0;
 		this.colaDeNuevos = new ArrayList<Proceso>();
 		this.colaDeAdmitidos = new ArrayList<Proceso>();
+		this.cantidadDeProcesosFinalizados = 0;
 	}
 	
 	public void ejecutar() {
 		
-		Integer cantidadDeProcesosFinalizados = 0;
 		String gantt = "";
 		//En el metodo leerProcesos() leemos los procesos del csv, controlamos su formato y 
 		//y si no hay errores los cargamos en la lista procesosEnArchivoCsv
@@ -66,20 +67,21 @@ public class PlanificadorControlador {
 				
 				// Agrego los procesos a la cola de nuevos,
 				this.colaDeNuevos.addAll(procesosLlegadosEnElInstanteActual);
-				this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+				//La cola de nuevos es FIFO (esta ordenada por tiempo de arribo)
+				this.colaDeNuevos.sort(Comparator.comparing(Proceso::getTiempoDeArribo));
 				System.out.println("Arribaron los siguientes procesos en el instante " + tiempo);
 				System.out.println(procesosLlegadosEnElInstanteActual);
 				
 				//llamada a un metodo que al comiezo pregunta por multiprogramacion
 				
-				this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
+				this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, this.cantidadDeProcesosFinalizados);
 
 			} else {
 				System.out.println("No arribaron procesos en el instante " + this.tiempo);
 				
 				//Pregunto si la cola de nuevos no esta vacia
 				if (!this.colaDeNuevos.isEmpty()) {
-					this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
+					this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, this.cantidadDeProcesosFinalizados);
 				} else {
 					
 					//Pregunto si en la cola de admitidos (que no esta vacia) hay procesos con estado "listo y suspendido"
@@ -96,9 +98,9 @@ public class PlanificadorControlador {
 								this.colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 								
 									if (colaDeNuevos.size() > 0) {
-										this.planificadorServicio.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
+										this.planificadorServicio.iterarSobreColaDeNuevos(cpu ,memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, this.cantidadDeProcesosFinalizados);
 									} else {
-										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
+										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, this.cantidadDeProcesosFinalizados);
 									}
 								
 								//TODO
@@ -111,9 +113,9 @@ public class PlanificadorControlador {
 									System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
 									
 									if (colaDeNuevos.size() > 0) {
-										this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
+										this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, this.cantidadDeProcesosFinalizados);
 									} else {
-										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
+										this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, this.cantidadDeProcesosFinalizados);
 									}
 								}
 								
@@ -128,14 +130,14 @@ public class PlanificadorControlador {
 								System.out.println("El proceso " + primerProcesoEnMemoriaSecundaria.getId() + " se queda en Memoria Secundaria.");
 								
 								if (colaDeNuevos.size() > 0) {
-									this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, cantidadDeProcesosFinalizados);
+									this.planificadorServicio.iterarSobreColaDeNuevos(this.cpu, this.memoriaPrincipal, this.colaDeNuevos, this.colaDeAdmitidos, this.tiempo, this.cantidadDeProcesosFinalizados);
 								} else {
-									this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, cantidadDeProcesosFinalizados);
+									this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, this.cantidadDeProcesosFinalizados);
 								}
 							}
 						}
 					} else {
-						//TODO
+						this.planificadorServicio.trabajoEnCpu(this.cpu, this.colaDeAdmitidos, this.memoriaPrincipal, this.cantidadDeProcesosFinalizados);
 					}
 				}
 			}
@@ -151,7 +153,7 @@ public class PlanificadorControlador {
 			}
 			System.out.println("Cola de Listos: " + this.planificadorServicio.mostrarColaDeListos(colaDeAdmitidos));
 			System.out.println("Cola de Listos/Suspendidos: " + this.planificadorServicio.mostrarColaDeListosSuspendidos(colaDeAdmitidos));
-			System.out.println("Admitidos: " + this.colaDeAdmitidos);
+//			System.out.println("Admitidos: " + this.colaDeAdmitidos);
 			System.out.println("Cola de Nuevos: " + this.colaDeNuevos);
 			System.out.print(this.memoriaPrincipal.getParticiones().get(0));
 			System.out.print(this.memoriaPrincipal.getParticiones().get(1));
@@ -161,7 +163,7 @@ public class PlanificadorControlador {
 			this.tiempo++;
 			
 
-		} while (cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
+		} while (this.cantidadDeProcesosFinalizados < procesosEnArchivoCsv.size());
 		
 	}
 	

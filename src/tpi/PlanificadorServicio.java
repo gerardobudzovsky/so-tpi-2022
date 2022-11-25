@@ -219,7 +219,7 @@ public class PlanificadorServicio {
 					} else {
 						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
 						if ( esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo) ) {
-							//TODO
+							
 							List<Particion> particionesCandidatasAlSwapping = this.obtenerParticionesCandidatasParaSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo);
 							this.worstFitEnParticionesCandidatasAlSwapping(primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapping);
 							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
@@ -261,7 +261,7 @@ public class PlanificadorServicio {
 			}
 			
 		} else {
-
+			this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
 		}
 	}
 	
@@ -341,7 +341,7 @@ public class PlanificadorServicio {
 				//TODO en ese caso se debe elegir el proceso con el tiempo de arriba mas bajo
 				if (colaDeListos.size() > 1 
 						&& colaDeListos.get(0).getTiempoDeIrrupcion().equals(colaDeListos.get(1).getTiempoDeIrrupcion())
-						&& colaDeListos.get(0).getTiempoDeArribo() <  colaDeListos.get(1).getTiempoDeArribo()) {
+						&& colaDeListos.get(0).getTiempoDeArribo() >  colaDeListos.get(1).getTiempoDeArribo()) {
 					primerProcesoListo = colaDeListos.get(1);
 				}else {
 					primerProcesoListo = colaDeListos.get(0);
