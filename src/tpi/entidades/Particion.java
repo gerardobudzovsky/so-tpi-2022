@@ -6,9 +6,18 @@ public class Particion {
     private Proceso proceso;
     private Integer direccionInicio;
     private Integer direccionFinal;
+    private Integer fragmentacionInterna;
     
     
-    public Integer getDireccionInicio() {
+    public Integer getFragmentacionInterna() {
+		return fragmentacionInterna;
+	}
+
+	public void setFragmentacionInterna(Integer fragmentacionInterna) {
+		this.fragmentacionInterna = fragmentacionInterna;
+	}
+
+	public Integer getDireccionInicio() {
         return direccionInicio;
     }
 

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
@@ -57,46 +58,96 @@ public class PlanificadorServicio {
 		return particionSo;
 	}
 
-	public List<Proceso> leerProcesos(String pathDeArchivo) {
-
+	public List<Proceso> leerProcesos(String pathDeArchivo){
+		if(pathDeArchivo == null) {
+			System.out.println("Debe ingresar un archivo CSV.");
+			System.exit(0);
+		}
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(pathDeArchivo))) {
 
 			String linea = bufferedReader.readLine();
+
 			List<Proceso> procesos = new ArrayList<Proceso>();
 			Integer cantidadDeProcesos = 0;
-			
+			Boolean isAValidHeader = Objects.equals(linea, "TR,TA,TI,TAM");
+
+
+			if(!isAValidHeader) {
+				System.out.println("Error: El header tiene un formato invalido");
+				System.exit(0);
+			}
+			Integer numeroLines = 0;
+
 			while (linea != null) {
-				String[] campos = linea.split(Constantes.SEPARADOR);
-
-				Proceso proceso = new Proceso();
-
-				proceso.setId(campos[0]);
-				proceso.setTiempoDeArribo(Integer.valueOf(campos[1]));
-				proceso.setTiempoDeIrrupcion(Integer.valueOf(campos[2]));
-				Integer tamanhoDeProceso = Integer.valueOf(campos[3]);
-				
-				if (tamanhoDeProceso <= Constantes.TAMANHO_PARTICION_T_GRANDES) {
-					proceso.setTamanho(tamanhoDeProceso);
+				if(numeroLines == 0) {
+					//headers
+					numeroLines = numeroLines+1;
+					linea = bufferedReader.readLine();
 				} else {
-					System.out.println("El tamanho del proceso " + proceso.getId() + " es mayor que la particion mas grande en memoria.");
-					System.exit(0);
+
+					String[] campos = linea.split(Constantes.SEPARADOR);
+
+					Proceso proceso = new Proceso();
+					if(linea.trim().equals("") || linea.trim().equals("\n")) {
+						System.out.println("Error: CSV inconsistente. Hay una linea vacia");
+						System.exit(0);
+					}
+
+					if(campos[0].equals("") || campos[0].equals(" ")) {
+						System.out.println("Error: Existe un proceso sin id.");
+						System.exit(0);
+					}
+
+					if(campos[1].equals("") || campos[1].equals(" ")) {
+						System.out.println("Error: Existe un proceso sin tiempo de arribo.");
+						System.exit(0);
+					}
+
+					if(campos[2].equals("") || campos[2].equals(" ")) {
+						System.out.println("Error: Existe un proceso sin tiempo irrupción.");
+						System.exit(0);
+					}
+
+					//esta validacion corresponde al tamaño ya que si no viene el campo tiene length 3. En los otros casos rompe antes.
+					if(campos.length == 3 ) {
+						System.out.println("Error: Existe un proceso sin tamaño.");
+						System.exit(0);
+					}
+					Integer tamanhoDeProceso = Integer.valueOf(campos[3]);
+
+					if (tamanhoDeProceso <= Constantes.TAMANHO_PARTICION_T_GRANDES) {
+						proceso.setTamanho(tamanhoDeProceso);
+					} else {
+						System.out.println("El tamanho del proceso " + proceso.getId() + " es mayor que la particion mas grande en memoria.");
+						System.exit(0);
+					}
+
+					proceso.setId(campos[0]);
+					proceso.setTiempoDeArribo(Integer.valueOf(campos[1]));
+					proceso.setTiempoDeIrrupcion(Integer.valueOf(campos[2]));
+
+					procesos.add(proceso);
+					cantidadDeProcesos++;
+					numeroLines++;
+					linea = bufferedReader.readLine();
 				}
-				
-				procesos.add(proceso);
-				cantidadDeProcesos++;
-				linea = bufferedReader.readLine();
+
 			}
-			
-			if (cantidadDeProcesos < Constantes.CANTIDAD_MINIMA_DE_PROCESOS_EN_CSV) {
-				System.out.println("La cantidad de procesos es menor al minimo permitido");
+
+			if(numeroLines == 1) {
+				System.out.println("Error: El CSV no tiene procesos");
 				System.exit(0);
 			}
-			
-			if (cantidadDeProcesos > Constantes.CANTIDAD_MAXIMA_DE_PROCESOS_EN_CSV) {
-				System.out.println("La cantidad de procesos es mayor al maximo permitido");
+			if (cantidadDeProcesos <= Constantes.CANTIDAD_MINIMA_DE_PROCESOS_EN_CSV) {
+						System.out.println("Error: El CSV esta vacío");
+						System.exit(0);
+					}
+
+			if (cantidadDeProcesos >= Constantes.CANTIDAD_MAXIMA_DE_PROCESOS_EN_CSV) {
+				System.out.println("Error: La cantidad de procesos es mayor al maximo permitido");
 				System.exit(0);
 			}
-			
+
 			return procesos;
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
@@ -105,7 +156,7 @@ public class PlanificadorServicio {
 			
 		}
 		return new ArrayList<Proceso>();
-	}	
+	}
 	
 	public List<Proceso> obtenerProcesosLlegadosEnElInstanteActual(List<Proceso> procesosEnArchivoCsv, Integer tiempo){
 	
@@ -139,6 +190,7 @@ public class PlanificadorServicio {
 			}
 			procesoAAsignar.setEstado(Estado.LISTO);
 			memoriaPrincipal.getParticiones().get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);
+			memoriaPrincipal.getParticiones().get(indexDeParticionConMayorEspacioRemanente).setFragmentacionInterna(espacioRemanenteMaximo);
 		
 	}
 	
@@ -162,7 +214,9 @@ public class PlanificadorServicio {
 		
 		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).getProceso().setEstado(Estado.LISTO_SUSPENDIDO);;
 		procesoAAsignar.setEstado(Estado.LISTO);
-		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);	
+		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).setProceso(procesoAAsignar);
+		particionesCandidatasAlSwapping.get(indexDeParticionConMayorEspacioRemanente).setFragmentacionInterna(espacioRemanenteMaximo);
+
 }
 
 	public boolean existeAlgunaParticionLibre(MemoriaPrincipal memoriaPrincipal) {
@@ -190,23 +244,16 @@ public class PlanificadorServicio {
 		
 		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
 			
-			System.out.println("Cola de Nuevos: " + colaDeNuevos);
-			System.out.println("Cola de Listos: " + this.mostrarColaDeListos(colaDeAdmitidos));
-			System.out.println("Cola de Listos/Suspendidos: " + this.mostrarColaDeListosSuspendidos(colaDeAdmitidos));
 			if (cpu.getProceso() != null) {
 				System.out.println("Proceso ejecutandose: " + cpu.getProceso().getId());
 			} else {
 				System.out.println("No hay proceso en ejecucion");
 			}
 			Proceso primerProcesoEnColaDeNuevos = colaDeNuevos.get(0);
-			System.out.println("Se tomó el proceso " + primerProcesoEnColaDeNuevos.getId() + " de la cola de nuevos.");
 			
 			if (this.existeAlgunaParticionLibre(memoriaPrincipal)) {
-				System.out.println("Existe al menos una particion libre en Memoria Principal.");
 					if (this.existeAlgunaParticionLibreDondeQuepaElProceso(memoriaPrincipal, primerProcesoEnColaDeNuevos)) {
-						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " cabe en una particion libre de Memoria Principal.");
 						this.worstFitEnMemoriaPrincipal(primerProcesoEnColaDeNuevos, memoriaPrincipal);
-						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
 						colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
 						colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
@@ -218,12 +265,10 @@ public class PlanificadorServicio {
 							}
 						
 					} else {
-						System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " no cabe en ninguna particion libre de Memoria Principal.");
 						if ( esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo) ) {
 							
 							List<Particion> particionesCandidatasAlSwapping = this.obtenerParticionesCandidatasParaSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo);
 							this.worstFitEnParticionesCandidatasAlSwapping(primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapping);
-							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Principal.");
 							colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
 							colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
 							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
@@ -236,7 +281,6 @@ public class PlanificadorServicio {
 							
 							
 						} else {
-							System.out.println("El proceso " + primerProcesoEnColaDeNuevos.getId() + " se cargo en Memoria Secundaria.");
 							primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
 							colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
 							colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
@@ -251,11 +295,29 @@ public class PlanificadorServicio {
 					}
 			} else {
 				
-				System.out.println("No hay ninguna particion libre en Memoria Principal.");
 				if ( esFactibleHacerSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo) ) {
-					//TODO
+					List<Particion> particionesCandidatasAlSwapping = this.obtenerParticionesCandidatasParaSwapping(memoriaPrincipal, primerProcesoEnColaDeNuevos, tiempo);
+					this.worstFitEnParticionesCandidatasAlSwapping(primerProcesoEnColaDeNuevos, particionesCandidatasAlSwapping);
+					colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
+					colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+					colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
+					
+					if (colaDeNuevos.size() > 0) {
+						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
+					} else {
+						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
+					}
 				}else {
-					//TODO
+					primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
+					colaDeAdmitidos.add(primerProcesoEnColaDeNuevos);
+					colaDeAdmitidos.sort(Comparator.comparing(Proceso::getTiempoDeIrrupcion));
+					colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
+					
+					if (colaDeNuevos.size() > 0) {
+						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados);
+					} else {
+						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados);
+					}
 				}
 
 				
@@ -318,6 +380,7 @@ public class PlanificadorServicio {
 				for (Particion particion : memoriaPrincipal.getParticiones()) {
 					if (particion.getProceso() != null && particion.getProceso().equals(cpu.getProceso())) {
 						particion.setProceso(null);
+						particion.setFragmentacionInterna(null);
 					}
 				}
 				

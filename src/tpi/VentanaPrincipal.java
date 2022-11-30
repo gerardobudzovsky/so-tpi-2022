@@ -17,7 +17,6 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 79569113591206658L;
 	private JPanel contentPane;
-	private JLabel labelTituloprincipal;
 	private JButton botonSeleccionarArchivo;
 	private JLabel labelArchivoSubido;
 	private JButton botonEjecutar;
@@ -40,19 +39,17 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 
 	public VentanaPrincipal() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 640, 480);
+		setBounds(100, 100, 611, 213);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		this.setTitle("UTN FRRE - Sistemas Operativos 2022 - Trabajo Integrador");
-
-		labelTituloprincipal = new JLabel("Simulador Administracion de Procesos");
 		
 		botonSeleccionarArchivo = new JButton("Seleccionar Archivo");
 		botonSeleccionarArchivo.setToolTipText("Permite seleccionar un archivo el cual contendrá el dataset usado por el algoritmo.");
 		botonSeleccionarArchivo.setFont(new Font("SansSerif", Font.PLAIN, 13));
-		botonSeleccionarArchivo.setBounds(23, 216, 161, 23);
+		botonSeleccionarArchivo.setBounds(23, 89, 161, 23);
 		botonSeleccionarArchivo.addActionListener(this);
 		contentPane.add(botonSeleccionarArchivo);
 		
@@ -60,15 +57,20 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 		
 		labelArchivoSubido = new JLabel("Archivo no seleccionado...");
 		labelArchivoSubido.setFont(new Font("SansSerif", Font.PLAIN, 13));
-		labelArchivoSubido.setBounds(205, 221, 208, 14);
+		labelArchivoSubido.setBounds(221, 91, 263, 19);
 		contentPane.add(labelArchivoSubido);
 		
 		botonEjecutar = new JButton("Ejecutar");
 		botonEjecutar.setToolTipText("Genera un árbol para el archivo seleccionado.");
 		botonEjecutar.setFont(new Font("SansSerif", Font.PLAIN, 13));
-		botonEjecutar.setBounds(23, 263, 96, 23);
+		botonEjecutar.setBounds(23, 135, 96, 23);
 		botonEjecutar.addActionListener(this);
 		contentPane.add(botonEjecutar);
+		
+		JLabel lblSimuladorDeAsignacion = new JLabel("Simulador de asignacion de memoria y planificacion de procesos");
+		lblSimuladorDeAsignacion.setFont(new Font("SansSerif", Font.PLAIN, 20));
+		lblSimuladorDeAsignacion.setBounds(10, 24, 590, 49);
+		contentPane.add(lblSimuladorDeAsignacion);
 		
 	}
 
