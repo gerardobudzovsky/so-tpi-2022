@@ -9,22 +9,50 @@ public class Proceso {
     private Integer tiempoDeArribo;
     private Integer tiempoDeIrrupcion;
     private Estado estado;
-    
+    private Integer tiempoDeIrrupcionOriginal;
+    private Integer tiempoDeRetorno;
+    private Integer tiempoDeEspera;
+
 	public Proceso() {
         super();
     }
 	
-    public Proceso(String id, Integer tamanho, Integer tiempoDeArribo, Integer tiempoDeIrrupcion, Estado estado) {
+    public Proceso(String id, Integer tamanho, Integer tiempoDeArribo, Integer tiempoDeIrrupcion, Estado estado, Integer tiempoDeIrrupcionOriginal, Integer tiempoDeRetorno, Integer tiempoDeEspera) {
 		super();
 		this.id = id;
 		this.tamanho = tamanho;
 		this.tiempoDeArribo = tiempoDeArribo;
 		this.tiempoDeIrrupcion = tiempoDeIrrupcion;
 		this.estado = estado;
+		this.tiempoDeIrrupcionOriginal = tiempoDeIrrupcionOriginal;
+		this.tiempoDeRetorno = tiempoDeRetorno;
+		this.tiempoDeEspera = tiempoDeEspera;
 	}
-
-
-
+    
+    public Integer getTiempoDeEspera() {
+    	return tiempoDeEspera;
+    }
+    
+    public void setTiempoDeEspera(Integer tiempoDeEspera) {
+    	this.tiempoDeEspera = tiempoDeEspera;
+    }
+    
+    public Integer getTiempoDeRetorno() {
+    	return tiempoDeRetorno;
+    }
+    
+    public void setTiempoDeRetorno(Integer tiempoDeRetorno) {
+    	this.tiempoDeRetorno = tiempoDeRetorno;
+    }
+    
+    public Integer getTiempoDeIrrupcionOriginal() {
+    	return tiempoDeIrrupcionOriginal;
+    }
+    
+    public void setTiempoDeIrrupcionOriginal(Integer tiempoDeIrrupcionOriginal) {
+    	this.tiempoDeIrrupcionOriginal = tiempoDeIrrupcionOriginal;
+    }
+    
 	public Integer getTamanho() {
 		return tamanho;
 	}

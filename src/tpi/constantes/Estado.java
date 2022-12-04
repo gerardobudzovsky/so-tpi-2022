@@ -5,5 +5,5 @@ public enum Estado {
 	LISTO,
 	LISTO_SUSPENDIDO,
 	EN_EJECUCION,
-	SALIENTE	
+	FINALIZADO	
 }

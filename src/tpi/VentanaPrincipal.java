@@ -1,17 +1,19 @@
 package tpi;
 
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.awt.event.ActionEvent;
-import java.awt.Font;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.border.EmptyBorder;
 
 public class VentanaPrincipal extends JFrame implements ActionListener {
 
@@ -23,6 +25,12 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 	private File archivo;
 	private JFileChooser fileChooser;
 	private String pathDeArchivo;
+	private JButton jButtonAvanzarModoDeAUno;
+	private JScrollPane jScrollPane;
+	private JTextArea jTextArea;
+	private PlanificadorControlador planificadorControlador;
+	private Integer paso;
+	private JButton jButtonAvanzarModoTerminados;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -39,7 +47,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 
 	public VentanaPrincipal() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 611, 213);
+		setBounds(100, 100, 799, 601);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -61,7 +69,7 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 		contentPane.add(labelArchivoSubido);
 		
 		botonEjecutar = new JButton("Ejecutar");
-		botonEjecutar.setToolTipText("Genera un árbol para el archivo seleccionado.");
+		botonEjecutar.setToolTipText("");
 		botonEjecutar.setFont(new Font("SansSerif", Font.PLAIN, 13));
 		botonEjecutar.setBounds(23, 135, 96, 23);
 		botonEjecutar.addActionListener(this);
@@ -71,6 +79,27 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 		lblSimuladorDeAsignacion.setFont(new Font("SansSerif", Font.PLAIN, 20));
 		lblSimuladorDeAsignacion.setBounds(10, 24, 590, 49);
 		contentPane.add(lblSimuladorDeAsignacion);
+		
+		jButtonAvanzarModoDeAUno = new JButton("Avanzar en Modo de a Uno");
+		jButtonAvanzarModoDeAUno.setToolTipText("");
+		jButtonAvanzarModoDeAUno.setFont(new Font("SansSerif", Font.PLAIN, 13));
+		jButtonAvanzarModoDeAUno.setBounds(221, 191, 183, 21);
+		jButtonAvanzarModoDeAUno.addActionListener(this);
+		contentPane.add(jButtonAvanzarModoDeAUno);
+		
+		jTextArea = new JTextArea();
+		jTextArea.setEditable(false);
+		
+		jScrollPane = new JScrollPane(jTextArea);
+		jScrollPane.setBounds(29, 237, 746, 303);
+		contentPane.add(jScrollPane);
+		
+		jButtonAvanzarModoTerminados = new JButton("Avanzar en Modo Procesos Terminados");
+		jButtonAvanzarModoTerminados.setToolTipText("");
+		jButtonAvanzarModoTerminados.setFont(new Font("SansSerif", Font.PLAIN, 13));
+		jButtonAvanzarModoTerminados.addActionListener(this);
+		jButtonAvanzarModoTerminados.setBounds(436, 191, 85, 21);
+		contentPane.add(jButtonAvanzarModoTerminados);
 		
 	}
 
@@ -89,8 +118,21 @@ public class VentanaPrincipal extends JFrame implements ActionListener {
 		
 		if (evento.getSource() == botonEjecutar) {
 			//Declara e instancia un objeto de la clase PlanificadorControlador
-			PlanificadorControlador planificadorControlador = new PlanificadorControlador();
+			planificadorControlador = new PlanificadorControlador();
 			planificadorControlador.ejecutar(this.pathDeArchivo);
+			paso = 0;
+		}
+		
+		if (evento.getSource() == jButtonAvanzarModoDeAUno) {
+			String texto = planificadorControlador.getLogueos().get(paso).getTexto();
+			this.jTextArea.setText(this.jTextArea.getText().concat(texto));
+			paso ++;
+		}
+		
+		if (evento.getSource() == jButtonAvanzarModoTerminados) {
+			String texto = planificadorControlador.getLogueos().get(paso).getTexto();
+			this.jTextArea.setText(this.jTextArea.getText().concat(texto));
+			paso ++;
 		}
 	}
 }
