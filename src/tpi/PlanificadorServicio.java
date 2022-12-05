@@ -10,11 +10,14 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
 import tpi.constantes.Constantes;
 import tpi.constantes.Estado;
 import tpi.entidades.CantidadDeProcesosFinalizados;
 import tpi.entidades.CantidadDeSwappings;
 import tpi.entidades.Cpu;
+import tpi.entidades.HayErrorDeFormato;
 import tpi.entidades.MemoriaPrincipal;
 import tpi.entidades.Particion;
 import tpi.entidades.Proceso;
@@ -61,10 +64,12 @@ public class PlanificadorServicio {
 		return particionSo;
 	}
 
-	public List<Proceso> leerProcesos(String pathDeArchivo){
+	public List<Proceso> leerProcesos(String pathDeArchivo, HayErrorDeFormato hayErrorDeFormato){
 		if(pathDeArchivo == null) {
-			System.out.println("Debe ingresar un archivo CSV.");
-			System.exit(0);
+			//System.out.println("Debe ingresar un archivo CSV.");
+			JOptionPane.showMessageDialog(null, "Debe ingresar un archivo CSV. \n Por favor revisar el csv", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			hayErrorDeFormato.valor = true;
 		}
 		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(pathDeArchivo))) {
 
@@ -77,8 +82,10 @@ public class PlanificadorServicio {
 			Pattern pattern = Pattern.compile(validProcess);
 
 			if(!isAValidHeader) {
-				System.out.println("Error: El header tiene un formato invalido");
-				System.exit(0);
+				//System.out.println("Error: El header tiene un formato invalido.");
+				JOptionPane.showMessageDialog(null, "Error: El header tiene un formato invalido. \n Por favor revisar el csv", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				hayErrorDeFormato.valor = true;
 			}
 			Integer numeroLines = 0;
 
@@ -95,13 +102,17 @@ public class PlanificadorServicio {
 
 					Proceso proceso = new Proceso();
 					if(linea.trim().equals("") || linea.trim().equals("\n")) {
-						System.out.println("Error: CSV inconsistente. Hay una linea vacia");
-						System.exit(0);
+						//System.out.println("Error: CSV inconsistente. Hay una linea vacia.");
+						JOptionPane.showMessageDialog(null, "Error: CSV inconsistente. Hay una linea vacia. \n Por favor revisar el csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					if(!isAValidProcess) {
-						System.out.println("Error: el CSV tiene formato incorrecto");
-						System.exit(0);
+						//System.out.println("Error: el CSV tiene formato incorrecto");
+						JOptionPane.showMessageDialog(null, "Error: el CSV tiene formato incorrecto. \n Por favor revisar el csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					if(isAValidProcess) {
@@ -109,38 +120,58 @@ public class PlanificadorServicio {
 						int ti = Integer.parseInt(campos[2]);
 						int tam = Integer.parseInt(campos[3]);
 						if(ta < 0 || ti <0 || tam < 0) {
-							System.out.println("Error: el CSV no puede contener numeros negativos");
-							System.exit(0);
+							//System.out.println("Error: el CSV no puede contener numeros negativos.");
+							JOptionPane.showMessageDialog(null, "Error: el CSV no puede contener numeros negativos. \n Por favor revisar el csv", "Error",
+									JOptionPane.ERROR_MESSAGE);
+							hayErrorDeFormato.valor = true;
 						}
+						
+						if(ti < 1 || tam < 1) {
+							//System.out.println("Error: los tiempos de arribo y los tamaños de proceso deben ser mayores a 0.");
+							JOptionPane.showMessageDialog(null, "Error: los tiempos de arribo y los tamanhos de proceso deben ser mayores a 0. \n Por favor revisar los datos del csv", "Error",
+									JOptionPane.ERROR_MESSAGE);
+							hayErrorDeFormato.valor = true;
+						}
+						
 					}
-
+					
 					if(campos[0].equals("") || campos[0].equals(" ")) {
-						System.out.println("Error: Existe un proceso sin id.");
-						System.exit(0);
+						//System.out.println("Error: Existe un proceso sin id.");
+						JOptionPane.showMessageDialog(null, "Error: Existe un proceso sin id. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					if(campos[1].equals("") || campos[1].equals(" ")) {
-						System.out.println("Error: Existe un proceso sin tiempo de arribo.");
-						System.exit(0);
+						//System.out.println("Error: Existe un proceso sin tiempo de arribo.");
+						JOptionPane.showMessageDialog(null, "Error: Existe un proceso sin tiempo de arribo. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					if(campos[2].equals("") || campos[2].equals(" ")) {
-						System.out.println("Error: Existe un proceso sin tiempo irrupción.");
-						System.exit(0);
+						//System.out.println("Error: Existe un proceso sin tiempo de irrupcion.");
+						JOptionPane.showMessageDialog(null, "Error: Existe un proceso sin tiempo de irrupcion. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					//esta validacion corresponde al tamaño ya que si no viene el campo tiene length 3. En los otros casos rompe antes.
 					if(campos.length == 3 ) {
-						System.out.println("Error: Existe un proceso sin tamaño.");
-						System.exit(0);
+						//System.out.println("Error: Existe un proceso sin tamanho.");
+						JOptionPane.showMessageDialog(null, "Error: Existe un proceso sin tamanho. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 					Integer tamanhoDeProceso = Integer.valueOf(campos[3]);
 
 					if (tamanhoDeProceso <= Constantes.TAMANHO_PARTICION_T_GRANDES) {
 						proceso.setTamanho(tamanhoDeProceso);
 					} else {
-						System.out.println("Error: Existe un proceso que excede el tamaño permitido.");
-						System.exit(0);
+						//System.out.println("Error: Existe un proceso que excede el tamanho permitido.");
+						JOptionPane.showMessageDialog(null, "Error: Existe un proceso que excede el tamanho permitido. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 					proceso.setId(campos[0]);
@@ -157,24 +188,32 @@ public class PlanificadorServicio {
 			}
 
 			if(numeroLines == 1) {
-				System.out.println("Error: El CSV no tiene procesos");
-				System.exit(0);
+				//System.out.println("Error: El CSV no tiene procesos.");
+				JOptionPane.showMessageDialog(null, "Error: El CSV no tiene procesos. \n Por favor revisar los datos del csv", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				hayErrorDeFormato.valor = true;
 			}
 			if (cantidadDeProcesos <= Constantes.CANTIDAD_MINIMA_DE_PROCESOS_EN_CSV) {
-						System.out.println("Error: El CSV esta vacío");
-						System.exit(0);
+						//System.out.println("Error: El CSV esta vacio.");
+						JOptionPane.showMessageDialog(null, "Error: El CSV esta vacio. \n Por favor revisar los datos del csv", "Error",
+								JOptionPane.ERROR_MESSAGE);
+						hayErrorDeFormato.valor = true;
 					}
 
 			if (cantidadDeProcesos >= Constantes.CANTIDAD_MAXIMA_DE_PROCESOS_EN_CSV) {
-				System.out.println("Error: La cantidad de procesos es mayor al maximo permitido");
-				System.exit(0);
+				//System.out.println("Error: La cantidad de procesos es mayor al maximo permitido.");
+				JOptionPane.showMessageDialog(null, "Error: La cantidad de procesos es mayor al maximo permitido. \n Por favor revisar los datos del csv", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				hayErrorDeFormato.valor = true;
 			}
 
 			return procesos;
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			System.out.println("No es un archivo .csv");
-			System.exit(0);
+			//System.out.println(e.getMessage());
+			//System.out.println("No es un archivo .csv");
+			JOptionPane.showMessageDialog(null, "No es un archivo .csv \n Por favor revisar los datos del csv", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			hayErrorDeFormato.valor = true;
 			
 		}
 		return new ArrayList<Proceso>();
@@ -262,15 +301,10 @@ public class PlanificadorServicio {
 		
 	}
 	
-	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados, CantidadDeSwappings cantidadDeSwappings, List<Proceso> colaDeFinalizados) {
+	public void iterarSobreColaDeNuevos(Cpu cpu, MemoriaPrincipal memoriaPrincipal, List<Proceso> colaDeNuevos, List<Proceso> colaDeAdmitidos, Integer tiempo, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados, CantidadDeSwappings cantidadDeSwappings, List<Proceso> colaDeFinalizados, Logueo logueo) {
 		
 		if (colaDeAdmitidos.size() < Constantes.NIVEL_DE_MULTIPROGRAMACION) {
 			
-			if (cpu.getProceso() != null) {
-				System.out.println("Proceso ejecutandose: " + cpu.getProceso().getId());
-			} else {
-				System.out.println("No hay proceso en ejecucion");
-			}
 			Proceso primerProcesoEnColaDeNuevos = colaDeNuevos.get(0);
 			
 			if (this.existeAlgunaParticionLibre(memoriaPrincipal)) {
@@ -281,9 +315,9 @@ public class PlanificadorServicio {
 						colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 						
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados);
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados, logueo);
 							} else {
-								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 							}
 						
 					} else {
@@ -296,9 +330,9 @@ public class PlanificadorServicio {
 							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 							
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados);
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados, logueo);
 							} else {
-								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 							}
 							
 							
@@ -309,9 +343,9 @@ public class PlanificadorServicio {
 							colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 							
 							if (colaDeNuevos.size() > 0) {
-								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados);
+								this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados, logueo);
 							} else {
-								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+								this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 							}
 						}
 					}
@@ -325,9 +359,9 @@ public class PlanificadorServicio {
 					colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 					
 					if (colaDeNuevos.size() > 0) {
-						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados);
+						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados, logueo);
 					} else {
-						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 					}
 				}else {
 					primerProcesoEnColaDeNuevos.setEstado(Estado.LISTO_SUSPENDIDO);
@@ -336,9 +370,9 @@ public class PlanificadorServicio {
 					colaDeNuevos.remove(primerProcesoEnColaDeNuevos);
 					
 					if (colaDeNuevos.size() > 0) {
-						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados);
+						this.iterarSobreColaDeNuevos(cpu, memoriaPrincipal, colaDeNuevos, colaDeAdmitidos, tiempo, cantidadDeProcesosFinalizados, cantidadDeSwappings, colaDeFinalizados, logueo);
 					} else {
-						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+						this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 					}
 				}
 
@@ -346,7 +380,7 @@ public class PlanificadorServicio {
 			}
 			
 		} else {
-			this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados);
+			this.trabajoEnCpu(cpu, colaDeAdmitidos, memoriaPrincipal, cantidadDeProcesosFinalizados, tiempo, colaDeFinalizados, logueo);
 		}
 	}
 	
@@ -388,10 +422,14 @@ public class PlanificadorServicio {
 		
 	}	
 	
-	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados, Integer tiempo, List<Proceso> colaDeFinalizados) {
+	public void trabajoEnCpu(Cpu cpu, List<Proceso> colaDeAdmitidos, MemoriaPrincipal memoriaPrincipal, CantidadDeProcesosFinalizados cantidadDeProcesosFinalizados, Integer tiempo, List<Proceso> colaDeFinalizados, Logueo logueo) {
+		
+		final String SALTO_DE_LINEA = "\n";
 		
 		if (cpu.getProceso() != null) {
 			
+			//System.out.println("Proceso ejecutandose: " + cpu.getProceso().getId());
+			logueo.setTexto(logueo.getTexto() + "Proceso ejecutandose: " + cpu.getProceso().getId() + SALTO_DE_LINEA);
 			cpu.getProceso().setTiempoDeIrrupcion(cpu.getProceso().getTiempoDeIrrupcion() -1);
 			
 			if (cpu.getProceso().getTiempoDeIrrupcion().equals(0)) {
@@ -399,8 +437,6 @@ public class PlanificadorServicio {
 				cantidadDeProcesosFinalizados.valor++;
 				cpu.getProceso().setTiempoDeRetorno(tiempo - cpu.getProceso().getTiempoDeArribo());
 				cpu.getProceso().setTiempoDeEspera(cpu.getProceso().getTiempoDeRetorno() - cpu.getProceso().getTiempoDeIrrupcionOriginal() + 1);
-				System.out.println("Tiempo de Retorno de" + cpu.getProceso().getId() + " :" + cpu.getProceso().getTiempoDeRetorno());
-				System.out.println("Tiempo de Espera de" + cpu.getProceso().getId() + " :" + cpu.getProceso().getTiempoDeEspera());
 				colaDeFinalizados.add(cpu.getProceso());
 				colaDeAdmitidos.remove(cpu.getProceso());
 				
@@ -411,13 +447,21 @@ public class PlanificadorServicio {
 					}
 				}
 				
-				System.out.println("El proceso " + cpu.getProceso().getId() + " finalizo.");
+				//System.out.println("El proceso " + cpu.getProceso().getId() + " finalizo.");
+				logueo.setTexto(logueo.getTexto() + "El proceso " + cpu.getProceso().getId() + " finalizo." + SALTO_DE_LINEA);
+				//System.out.println("Tiempo de Retorno del proceso " + cpu.getProceso().getId() + ": " + cpu.getProceso().getTiempoDeRetorno());
+				logueo.setTexto(logueo.getTexto() + "Tiempo de Retorno del proceso " + cpu.getProceso().getId() + ": " + cpu.getProceso().getTiempoDeRetorno() + SALTO_DE_LINEA);
+				//System.out.println("Tiempo de Espera del proceso " + cpu.getProceso().getId() + ": " + cpu.getProceso().getTiempoDeEspera());
+				logueo.setTexto(logueo.getTexto() + "Tiempo de Espera del proceso " + cpu.getProceso().getId() + ": " + cpu.getProceso().getTiempoDeEspera() + SALTO_DE_LINEA);
 				cpu.setProceso(null);
 				
-//				logueo.setEsInstanteConProcesosTerminados(true);
+				logueo.setEsInstanteConProcesosTerminados(true);
 			}
 			
 		} else {
+			
+			//System.out.println("No hay proceso en ejecucion");
+			logueo.setTexto(logueo.getTexto() + "No hay proceso en ejecucion" + SALTO_DE_LINEA);
 			
 			if (this.existeProcesoListoEnColaDeAdmitidos(colaDeAdmitidos)) {				
 				List<Proceso> colaDeListos = new ArrayList<Proceso>();
